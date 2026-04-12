@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RailMan AI — Mumbai Western Line</title>
+<style>
+/* ── Reset & Base ─────────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0B0F1A;--bg-card:#141927;--bg-elevated:#1C2333;--bg-input:#1C2333;
+  --primary:#6366F1;--primary-glow:#818CF8;--accent:#22D3EE;
+  --success:#22C55E;--warning:#EAB308;--danger:#EF4444;--orange:#F97316;
+  --text:#F1F5F9;--text-2:#94A3B8;--text-3:#475569;
+  --border:#1E293B;--border-light:#334155;
+  --crowd-low:#22C55E;--crowd-med:#EAB308;--crowd-high:#F97316;--crowd-ext:#EF4444;
+  --radius:14px;--radius-lg:20px;
+}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+
+/* ── Layout ───────────────────────────────────────────────────────────── */
+#app{display:flex;flex-direction:column;height:100vh}
+.topbar{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--bg-card);border-bottom:1px solid var(--border);flex-shrink:0;z-index:10}
+.topbar-logo{font-size:20px;font-weight:800;color:var(--text)}
+.topbar-sub{font-size:11px;color:var(--text-3);margin-top:1px}
+.topbar-crowd{margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600}
+.tabs{display:flex;background:var(--bg-card);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab-btn{flex:1;padding:12px 8px;font-size:13px;font-weight:600;color:var(--text-3);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-btn:hover{color:var(--text-2)}
+.screen{display:none;flex:1;overflow:hidden}
+.screen.active{display:flex}
+
+/* ── Chat Screen ──────────────────────────────────────────────────────── */
+#screen-chat{flex-direction:column}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-track{background:transparent}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:2px}
+.msg{max-width:82%;display:flex;flex-direction:column;gap:3px}
+.msg.user{align-self:flex-end}
+.msg.ai{align-self:flex-start}
+.msg-label{font-size:10px;font-weight:700;color:var(--primary);margin-left:2px}
+.msg-bubble{padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.msg.user .msg-bubble{background:var(--primary);color:#fff;border-bottom-right-radius:4px}
+.msg.ai .msg-bubble{background:var(--bg-elevated);color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg-time{font-size:10px;color:var(--text-3);margin:0 4px}
+.msg-bubble b{font-weight:700}
+.quick-chips{display:flex;gap:6px;padding:8px 16px;flex-wrap:wrap;flex-shrink:0}
+.chip{background:var(--bg-elevated);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;color:var(--text-2);cursor:pointer;white-space:nowrap;transition:.15s}
+.chip:hover{border-color:var(--primary);color:var(--primary)}
+.chat-input-row{display:flex;gap:10px;padding:12px 16px;flex-shrink:0;border-top:1px solid var(--border)}
+.chat-input{flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:24px;padding:11px 16px;color:var(--text);font-size:14px;outline:none;transition:.15s}
+.chat-input:focus{border-color:var(--primary)}
+.chat-input::placeholder{color:var(--text-3)}
+.send-btn{width:44px;height:44px;border-radius:22px;background:var(--primary);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
+.send-btn:hover{background:var(--primary-glow)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+.typing-indicator{display:none;align-items:center;gap:8px;padding:0 16px 6px;color:var(--text-3);font-size:12px}
+.typing-indicator.show{display:flex}
+.typing-dots span{display:inline-block;width:6px;height:6px;border-radius:3px;background:var(--primary);animation:bounce .8s infinite;margin:0 1px}
+.typing-dots span:nth-child(2){animation-delay:.15s}
+.typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+
+/* ── Recommendation Cards ─────────────────────────────────────────────── */
+.rec-section{padding:0 16px 8px;display:flex;flex-direction:column;gap:8px}
+.train-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;transition:.15s}
+.train-card.best{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)22}
+.best-badge{background:var(--primary);color:#fff;font-size:10px;font-weight:700;border-radius:8px;padding:2px 8px;display:inline-block;margin-bottom:8px;letter-spacing:.5px}
+.train-card-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.color-dot{width:10px;height:10px;border-radius:5px;flex-shrink:0}
+.train-name{font-weight:700;font-size:14px;flex:1}
+.type-badge{border:1px solid;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:600}
+.train-stats{display:flex;justify-content:space-around}
+.stat{display:flex;flex-direction:column;align-items:center;gap:2px}
+.stat-icon{font-size:13px}
+.stat-val{font-size:12px;font-weight:700}
+.stat-label{font-size:10px;color:var(--text-3)}
+
+/* ── Plan Screen ──────────────────────────────────────────────────────── */
+#screen-plan{flex-direction:row;overflow:hidden}
+.plan-form{width:340px;flex-shrink:0;padding:20px;overflow-y:auto;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:16px}
+.plan-results{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.plan-results::-webkit-scrollbar{width:4px}
+.plan-results::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:2px}
+.form-label{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.station-select{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;color:var(--text);font-size:14px;outline:none;cursor:pointer;transition:.15s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.station-select:focus{border-color:var(--primary)}
+.station-select option{background:var(--bg-card)}
+.pref-row{display:flex;gap:6px}
+.pref-btn{flex:1;padding:8px 4px;border:1px solid var(--border);border-radius:20px;background:var(--bg-elevated);color:var(--text-2);font-size:12px;font-weight:600;cursor:pointer;transition:.15s;text-align:center}
+.pref-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.search-btn{width:100%;padding:14px;background:var(--primary);border:none;border-radius:var(--radius);color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
+.search-btn:hover{background:var(--primary-glow)}
+.search-btn:disabled{opacity:.4;cursor:not-allowed}
+.route-summary{background:var(--bg-elevated);border-radius:var(--radius);padding:12px;display:flex;justify-content:space-between;align-items:center}
+.route-text{font-weight:700;font-size:14px}
+.route-time{color:var(--accent);font-size:13px;font-weight:600}
+.explanation-box{background:var(--bg-card);border-radius:var(--radius);padding:14px;border-left:3px solid var(--primary);border:1px solid var(--border);border-left-width:3px;font-size:13px;color:var(--text-2);line-height:1.6;white-space:pre-wrap}
+.alt-title{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;color:var(--text-3)}
+.empty-icon{font-size:48px;opacity:.4}
+.empty-text{font-size:14px}
+
+/* ── Map Screen ───────────────────────────────────────────────────────── */
+#screen-map{flex-direction:column;position:relative}
+#map{flex:1}
+.map-overlay-top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none;z-index:500}
+.live-badge{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;pointer-events:all}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.crowd-legend{background:var(--bg-card)EE;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;display:flex;flex-direction:column;gap:3px;pointer-events:all}
+.legend-item{font-size:10px;color:var(--text-2)}
+.map-bottom{background:var(--bg-card);border-top:1px solid var(--border);padding:12px 16px;flex-shrink:0;max-height:160px;overflow-x:auto;overflow-y:hidden}
+.live-train-scroll{display:flex;gap:10px;width:max-content}
+.live-train-card{background:var(--bg-elevated);border-radius:var(--radius);padding:10px 12px;width:155px;border-left:3px solid var(--primary);flex-shrink:0}
+.ltc-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px}
+.ltc-dir{font-size:10px;color:var(--text-3);margin-bottom:5px}
+.ltc-station{font-size:11px;color:var(--text-2)}
+.ltc-crowd{font-size:10px;font-weight:600;margin-top:5px;padding:2px 7px;border-radius:20px;display:inline-block;border:1px solid}
+
+/* ── Chart ────────────────────────────────────────────────────────────── */
+.chart-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.chart-title{font-size:13px;font-weight:700;margin-bottom:12px}
+.chart-bars{display:flex;align-items:flex-end;height:80px;gap:3px;overflow-x:auto}
+.chart-bars::-webkit-scrollbar{height:3px}
+.chart-bars::-webkit-scrollbar-thumb{background:var(--border-light)}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;min-width:20px;flex:1}
+.bar-track{height:64px;display:flex;align-items:flex-end;width:100%}
+.bar{width:100%;border-radius:3px 3px 0 0;min-height:3px;transition:.3s}
+.bar-label{font-size:7px;color:var(--text-3);margin-top:2px;white-space:nowrap}
+.chart-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.chart-legend span{font-size:11px;color:var(--text-2)}
+
+/* ── Error / Success states ───────────────────────────────────────────── */
+.error-box{background:#EF444422;border:1px solid var(--danger);border-radius:var(--radius);padding:12px;color:var(--danger);font-size:13px}
+.section-title{font-size:13px;font-weight:700;color:var(--text)}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media(max-width:700px){
+  #screen-plan{flex-direction:column}
+  .plan-form{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:50vh}
+  .plan-results{max-height:50vh}
+  .topbar-sub{display:none}
+}
+@media(max-width:480px){
+  .tab-btn .tab-label{display:none}
+  .tab-btn{gap:0}
+  .msg{max-width:90%}
+}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
+<body>
+<div id="app">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">🚆 RailMan AI</div>
+      <div class="topbar-sub">Mumbai Western Line</div>
+    </div>
+    <div class="topbar-crowd" id="topbar-crowd">
+      <span id="topbar-crowd-emoji">⚪</span>
+      <span id="topbar-crowd-label">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('chat')" id="tab-chat">
+      💬 <span class="tab-label">Chat</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('plan')" id="tab-plan">
+      🎯 <span class="tab-label">Plan</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('map')" id="tab-map">
+      🗺 <span class="tab-label">Map</span>
+    </button>
+  </div>
+
+  <!-- ── CHAT SCREEN ── -->
+  <div class="screen active" id="screen-chat">
+    <div id="chat-messages" class="chat-messages"></div>
+    <div class="typing-indicator" id="typing">
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+      RailMan is thinking...
+    </div>
+    <div id="rec-section" class="rec-section"></div>
+    <div class="quick-chips">
+      <div class="chip" onclick="sendQuick('Best train right now')">🚆 Best train now</div>
+      <div class="chip" onclick="sendQuick('Least crowded option right now')">😌 Least crowded</div>
+      <div class="chip" onclick="sendQuick('Best train from Borivali to Churchgate at 9 AM')">📍 Borivali → CG</div>
+      <div class="chip" onclick="sendQuick('How crowded is it right now?')">📊 Crowd check</div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" placeholder="Ask about trains, routes, crowd levels..." onkeydown="handleKey(event)"/>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">↑</button>
+    </div>
+  </div>
+
+  <!-- ── PLAN SCREEN ── -->
+  <div class="screen" id="screen-plan">
+    <div class="plan-form">
+      <div>
+        <div class="form-label">From</div>
+        <select class="station-select" id="plan-src">
+          <option value="">Select source station...</option>
+        </select>
+      </div>
+      <div>
+        <div class="form-label">To</div>
+        <select class="station-select" id="plan-dst">
+          <option value="">Select destination station...</option>
+        </select>
+      </div>
+      <div>
+        <div class="form-label">Preference</div>
+        <div class="pref-row">
+          <button class="pref-btn active" onclick="setPref('balanced',this)">⚖️ Balanced</button>
+          <button class="pref-btn" onclick="setPref('fastest',this)">⚡ Fastest</button>
+          <button class="pref-btn" onclick="setPref('least_crowded',this)">😌 Comfort</button>
+        </div>
+      </div>
+      <button class="search-btn" id="plan-btn" onclick="planJourney()">Find Best Trains →</button>
+      <div id="plan-error" style="display:none" class="error-box"></div>
+    </div>
+    <div class="plan-results" id="plan-results">
+      <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <div class="empty-text">Select stations to get recommendations</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAP SCREEN ── -->
+  <div class="screen" id="screen-map">
+    <div id="map"></div>
+    <div class="map-overlay-top">
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        <span id="live-count">Loading...</span>
+      </div>
+      <div class="crowd-legend">
+        <div class="legend-item">🟢 Low</div>
+        <div class="legend-item">🟡 Medium</div>
+        <div class="legend-item">🟠 High</div>
+        <div class="legend-item">🔴 Extreme</div>
+      </div>
+    </div>
+    <div class="map-bottom">
+      <div class="live-train-scroll" id="live-train-list"></div>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════ //
+// Config                                                                       //
+// ═══════════════════════════════════════════════════════════════════════════ //
+const API = window.location.origin; // same-origin: FastAPI serves this file
+let sessionId = null;
+let planPref  = 'balanced';
+let mapObj    = null;
+let trainMarkers = {};
+let stationLayer = null;
+
+// ── Crowd helpers ─────────────────────────────────────────────────────────── //
+const CROWD_COLOR = {Low:'#22C55E',Medium:'#EAB308',High:'#F97316',Extreme:'#EF4444'};
+const CROWD_EMOJI = {Low:'🟢',Medium:'🟡',High:'🟠',Extreme:'🔴'};
+function crowdColor(l){return CROWD_COLOR[l]||'#94A3B8'}
+function crowdEmoji(l){return CROWD_EMOJI[l]||'⚪'}
+
+// ── Time helper ───────────────────────────────────────────────────────────── //
+function nowTime(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+
+// ═══════════════════════════════════════════════════════════════════════════ //
+// Tab Switching                                                                //
+// ═══════════════════════════════════════════════════════════════════════════ //
+function switchTab(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='map') initMap();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════ //
+// CHAT                                                                         //
+// ═══════════════════════════════════════════════════════════════════════════ //
+function appendMessage(role, content, time){
+  const wrap = document.getElementById('chat-messages');
+  const div  = document.createElement('div');
+  div.className = 'msg '+role;
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  // Render **bold** markdown
+  bubble.innerHTML = content
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+    .replace(/\n/g,'<br/>');
+  if(role==='ai'){
+    const label = document.createElement('div');
+    label.className='msg-label'; label.textContent='🚆 RailMan';
+    div.appendChild(label);
+  }
+  div.appendChild(bubble);
+  if(time){
+    const t=document.createElement('div');
+    t.className='msg-time'; t.textContent=time;
+    div.appendChild(t);
+  }
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
+}
+
+function renderTrainCard(train, isBest){
+  const cc = crowdColor(train.crowd);
+  const ce = crowdEmoji(train.crowd);
+  const typeColor = train.type==='fast'?'#F97316':train.type==='semi'?'#A855F7':'#22D3EE';
+  return `<div class="train-card${isBest?' best':''}">
+    ${isBest?'<div class="best-badge">⭐ BEST PICK</div>':''}
+    <div class="train-card-row">
+      <div class="color-dot" style="background:${train.color||'#6366F1'}"></div>
+      <div class="train-name">${train.name}</div>
+      <div class="type-badge" style="color:${typeColor};border-color:${typeColor}">${train.type==='fast'?'⚡ Fast':train.type==='semi'?'🚉 Semi':'🚉 Slow'}</div>
+    </div>
+    <div class="train-stats">
+      <div class="stat"><div class="stat-icon">⏱</div><div class="stat-val">${train.travel_minutes}m</div><div class="stat-label">Travel</div></div>
+      <div class="stat"><div class="stat-icon">${ce}</div><div class="stat-val" style="color:${cc}">${train.crowd}</div><div class="stat-label">Crowd</div></div>
+      <div class="stat"><div class="stat-icon">🕐</div><div class="stat-val">${train.departs||'--'}</div><div class="stat-label">Departs</div></div>
+    </div>
+  </div>`;
+}
+
+function renderRecommendation(rec){
+  const sec = document.getElementById('rec-section');
+  let html = '';
+  if(rec.best) html += renderTrainCard(rec.best, true);
+  if(rec.alternatives) rec.alternatives.forEach(a=>{ html+=renderTrainCard(a,false); });
+  if(rec.crowd_forecast) html += renderChart(rec.crowd_forecast);
+  sec.innerHTML = html;
+  sec.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderChart(data){
+  const bars = data.map(d=>{
+    const h = Math.max(4, d.score);
+    const isNow = d.hour===new Date().getHours();
+    const label = d.hour===0?'12a':d.hour<12?`${d.hour}a`:d.hour===12?'12p':`${d.hour-12}p`;
+    return `<div class="bar-wrap">
+      <div class="bar-track"><div class="bar" style="height:${h}%;background:${crowdColor(d.label)};opacity:${isNow?1:.6};outline:${isNow?'1px solid #fff':'none'}"></div></div>
+      <div class="bar-label" style="color:${isNow?'#22D3EE':'var(--text-3)'}">${label}</div>
+    </div>`;
+  }).join('');
+  return `<div class="chart-section">
+    <div class="chart-title">📊 24h Crowd Forecast</div>
+    <div class="chart-bars">${bars}</div>
+    <div class="chart-legend">
+      <span>🟢 Low</span><span>🟡 Medium</span><span>🟠 High</span><span>🔴 Extreme</span>
+    </div>
+  </div>`;
+}
+
+async function sendMessage(){
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value='';
+  document.getElementById('send-btn').disabled=true;
+  document.getElementById('rec-section').innerHTML='';
+
+  appendMessage('user', msg, nowTime());
+  document.getElementById('typing').classList.add('show');
+
+  try{
+    const res = await fetch(`${API}/api/chat`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:msg, session_id:sessionId})
+    });
+    const data = await res.json();
+    if(data.meta?.session_id) sessionId=data.meta.session_id;
+    document.getElementById('typing').classList.remove('show');
+    appendMessage('ai', data.response, nowTime());
+    if(data.recommendation) renderRecommendation(data.recommendation);
+    updateCrowdBadge(data.meta);
+  }catch(e){
+    document.getElementById('typing').classList.remove('show');
+    appendMessage('ai','⚠️ Cannot reach RailMan backend.\n\nMake sure the server is running on port 8000.',nowTime());
+  }
+  document.getElementById('send-btn').disabled=false;
+}
+
+function sendQuick(msg){ document.getElementById('chat-input').value=msg; sendMessage(); }
+function handleKey(e){ if(e.key==='Enter') sendMessage(); }
+
+function updateCrowdBadge(meta){
+  if(!meta) return;
+  document.getElementById('topbar-crowd-emoji').textContent = crowdEmoji(meta.crowd);
+  document.getElementById('topbar-crowd-label').textContent = meta.crowd||'--';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════ //
+// PLAN                                                                         //
+// ═══════════════════════════════════════════════════════════════════════════ //
+async function loadStations(){
+  try{
+    const res = await fetch(`${API}/api/stations`);
+    const stations = await res.json();
+    const src = document.getElementById('plan-src');
+    const dst = document.getElementById('plan-dst');
+    stations.forEach(s=>{
+      src.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+      dst.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+    });
+  }catch(e){ console.warn('Could not load stations'); }
+}
+
+function setPref(p, btn){
+  planPref=p;
+  document.querySelectorAll('.pref-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function planJourney(){
+  const src = document.getElementById('plan-src').value;
+  const dst = document.getElementById('plan-dst').value;
+  const errBox = document.getElementById('plan-error');
+  errBox.style.display='none';
+
+  if(!src||!dst){ errBox.textContent='Please select both source and destination.'; errBox.style.display='block'; return; }
+  if(src===dst){ errBox.textContent='Source and destination cannot be the same.'; errBox.style.display='block'; return; }
+
+  const btn = document.getElementById('plan-btn');
+  btn.disabled=true; btn.textContent='Searching...';
+
+  try{
+    const res = await fetch(`${API}/api/recommend`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({source:src,destination:dst,preference:planPref})
+    });
+    const data = await res.json();
+    if(data.error){ errBox.textContent=data.error; errBox.style.display='block'; }
+    else renderPlanResults(data);
+  }catch(e){
+    errBox.textContent='Server error. Is the backend running?'; errBox.style.display='block';
+  }
+  btn.disabled=false; btn.textContent='Find Best Trains →';
+}
+
+function renderPlanResults(data){
+  const meta = data.meta||{};
+  let html = `
+    <div class="route-summary">
+      <div class="route-text">${meta.source||'?'} → ${meta.destination||'?'}</div>
+      <div class="route-time">${meta.query_time||''}</div>
+    </div>`;
+  if(data.explanation) html+=`<div class="explanation-box">${
+    data.explanation.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br/>')
+  }</div>`;
+  if(data.best) html+=`<div class="section-title">🎯 Best Pick</div>${renderTrainCard(data.best,true)}`;
+  if(data.alternatives?.length){
+    html+=`<div class="alt-title">Alternatives</div>`;
+    data.alternatives.forEach(a=>{ html+=renderTrainCard(a,false); });
+  }
+  if(data.crowd_forecast) html+=renderChart(data.crowd_forecast);
+  document.getElementById('plan-results').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════ //
+// MAP                                                                          //
+// ═══════════════════════════════════════════════════════════════════════════ //
+let mapInitialized = false;
+let trainPollInterval = null;
+
+function initMap(){
+  if(mapInitialized) return;
+  mapInitialized=true;
+
+  mapObj = L.map('map',{
+    center:[19.2,72.85], zoom:11,
+    zoomControl:true,
+    attributionControl:false
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    maxZoom:19, subdomains:'abcd'
+  }).addTo(mapObj);
+
+  loadMapData();
+  trainPollInterval = setInterval(pollTrains, 3000);
+}
+
+async function loadMapData(){
+  try{
+    const res  = await fetch(`${API}/api/stations`);
+    const data = await res.json();
+    const coords = data.map(s=>[s.lat,s.lng]);
+
+    // Draw route polyline
+    L.polyline(coords,{color:'#6366F1',weight:3,opacity:.8}).addTo(mapObj);
+
+    // Station markers
+    data.forEach(s=>{
+      const dot = L.circleMarker([s.lat,s.lng],{
+        radius:4,fillColor:'#22D3EE',color:'#fff',weight:1.5,fillOpacity:1
+      }).addTo(mapObj);
+      dot.bindPopup(`<b style="color:#F1F5F9">${s.name}</b><br/><span style="color:#94A3B8;font-size:11px">${s.zone} zone</span>`,{
+        className:'dark-popup'
+      });
+    });
+
+    mapObj.fitBounds(L.latLngBounds(coords),{padding:[40,40]});
+  }catch(e){ console.warn('Could not load stations for map'); }
+}
+
+async function pollTrains(){
+  try{
+    const res  = await fetch(`${API}/api/live_trains`);
+    const trains = await res.json();
+    updateTrainMarkers(trains);
+    updateLiveTrainList(trains);
+    document.getElementById('live-count').textContent = `LIVE — ${trains.length} trains`;
+  }catch(e){}
+}
+
+function makeTrainIcon(color){
+  return L.divIcon({
+    html:`<div style="
+      width:28px;height:28px;border-radius:50%;background:${color};
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.5);
+      border:2px solid rgba(255,255,255,.2)">🚆</div>`,
+    iconSize:[28,28],iconAnchor:[14,14],className:''
+  });
+}
+
+function updateTrainMarkers(trains){
+  const seen = new Set();
+  trains.forEach(t=>{
+    seen.add(t.id);
+    const ll = [t.lat,t.lng];
+    if(trainMarkers[t.id]){
+      trainMarkers[t.id].setLatLng(ll);
+    } else {
+      const m = L.marker(ll,{icon:makeTrainIcon(t.color||'#6366F1')}).addTo(mapObj);
+      m.bindPopup(`
+        <div style="color:#F1F5F9;min-width:140px">
+          <b>${t.name}</b><br/>
+          <span style="color:#94A3B8;font-size:11px">${t.direction}</span><br/>
+          📍 ${t.current_station}<br/>
+          → ${t.next_station}<br/>
+          <span style="color:${crowdColor(t.crowd)};font-weight:700">${crowdEmoji(t.crowd)} ${t.crowd}</span>
+        </div>`,{className:'dark-popup'});
+      trainMarkers[t.id]=m;
+    }
+  });
+  // Remove departed trains
+  Object.keys(trainMarkers).forEach(id=>{
+    if(!seen.has(id)){ mapObj.removeLayer(trainMarkers[id]); delete trainMarkers[id]; }
+  });
+}
+
+function updateLiveTrainList(trains){
+  const list = document.getElementById('live-train-list');
+  list.innerHTML = trains.map(t=>{
+    const cc=crowdColor(t.crowd);
+    return `<div class="live-train-card" style="border-left-color:${t.color||'#6366F1'}">
+      <div class="ltc-name">${t.name}</div>
+      <div class="ltc-dir">${t.direction}</div>
+      <div class="ltc-station">📍 ${t.current_station}</div>
+      <div class="ltc-station">→ ${t.next_station}</div>
+      <div class="ltc-crowd" style="color:${cc};border-color:${cc};background:${cc}22">
+        ${crowdEmoji(t.crowd)} ${t.crowd}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════ //
+// Init                                                                         //
+// ═══════════════════════════════════════════════════════════════════════════ //
+async function initCrowdBadge(){
+  try{
+    const res=await fetch(`${API}/api/crowd_forecast`);
+    const data=await res.json();
+    const h=new Date().getHours();
+    const cur=data.find(d=>d.hour===h)||data[0];
+    if(cur){
+      document.getElementById('topbar-crowd-emoji').textContent=crowdEmoji(cur.label);
+      document.getElementById('topbar-crowd-label').textContent=cur.label;
+    }
+  }catch(e){}
+}
+
+// Welcome message
+appendMessage('ai',
+  '👋 **Welcome to RailMan AI!**\n\nYour smart Mumbai Western Line companion.\n\nAsk me anything:\n• *Best train from Borivali to Churchgate at 9 AM*\n• *Least crowded option right now*\n• *How long from Andheri to Dadar?*',
+  nowTime()
+);
+
+loadStations();
+initCrowdBadge();
+setInterval(initCrowdBadge, 60000);
+</script>
+</body>
+</html>

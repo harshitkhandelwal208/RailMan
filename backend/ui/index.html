@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RailMan AI - Desktop Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        rail: {
+                            base: '#0B0D14',
+                            panel: '#151720',
+                            panelHover: '#1B1E29',
+                            border: '#2A2D3A',
+                            primary: '#5B4DFF',
+                            textMain: '#E2E8F0',
+                            textMuted: '#94A3B8',
+                            success: '#22C55E',
+                            warning: '#EAB308',
+                            danger: '#EF4444'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0B0D14;
+            color: #E2E8F0;
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Panel Expansion Transitions */
+        .panel {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Hide scrollbar for clean UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2A2D3A;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Map SVG specific */
+        .rail-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw 2s ease forwards;
+        }
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { color: rgba(0,0,0,0); text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); }
+            40% { color: white; text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); }
+            60% { text-shadow: .25em 0 0 white, .5em 0 0 rgba(0,0,0,0); }
+            80%, 100% { text-shadow: .25em 0 0 white, .5em 0 0 white; }
+        }
+    </style>
+</head>
+<body class="h-screen w-full flex flex-col overflow-hidden font-sans">
+
+    <!-- Top Header -->
+    <header class="h-14 bg-rail-panel border-b border-rail-border flex items-center justify-between px-6 shrink-0">
+        <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-rail-primary" style="font-variation-settings: 'FILL' 1;">train</span>
+            <h1 class="text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+                RailMan AI <span class="text-rail-textMuted text-sm font-normal">Desktop Dashboard</span>
+            </h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="flex items-center gap-1.5 text-sm text-rail-textMuted hover:text-white transition-colors bg-rail-base/50 px-3 py-1.5 rounded-full border border-rail-border">
+                <span class="material-symbols-outlined text-sm">language</span>
+                Global Settings
+            </button>
+            <div class="w-8 h-8 rounded-full bg-rail-border flex items-center justify-center relative">
+                <span class="material-symbols-outlined text-sm">person</span>
+                <div class="absolute top-0 right-0 w-2 h-2 bg-rail-primary rounded-full border border-rail-panel"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <main class="flex-1 w-full flex p-4 gap-4 h-[calc(100vh-3.5rem)]" id="dashboard-container">
+        
+        <!-- ======================= -->
+        <!-- PANEL 1: AI CHAT        -->
+        <!-- ======================= -->
+        <section id="panel-chat" class="panel flex-1 bg-rail-panel rounded-2xl border border-rail-border flex flex-col overflow-hidden relative">
+            <!-- Header -->
+            <div class="p-4 border-b border-rail-border flex items-center justify-between shrink-0">
+                <h2 class="font-semibold text-white flex items-center gap-2">
+                    AI Chat
+                </h2>
+                <div class="flex gap-2">
+                    <button onclick="toggleMaximize('panel-chat')" class="w-8 h-8 rounded-lg bg-rail-base hover:bg-rail-border flex items-center justify-center transition-colors border border-transparent hover:border-rail-border/50 text-rail-textMuted hover:text-white">
+                        <span class="material-symbols-outlined text-sm" id="icon-panel-chat">open_in_full</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6" id="chat-messages-container">
+                <!-- Welcome Notice -->
+                <div class="flex flex-col items-center justify-center gap-3 my-4 bg-rail-base/40 p-6 rounded-2xl border border-rail-border/50">
+                    <div class="w-16 h-16 rounded-full bg-rail-border/40 flex items-center justify-center shadow-inner relative">
+                         <span class="material-symbols-outlined text-4xl text-[#7DA3DD]" style="font-variation-settings: 'FILL' 1;">train</span>
+                         <div class="absolute inset-0 bg-[#7DA3DD] blur-xl opacity-20 rounded-full"></div>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-white font-semibold">Welcome to RailMan AI!</h3>
+                        <p class="text-sm text-rail-textMuted mt-1">Your smart Mumbai Western Line companion.</p>
+                    </div>
+                </div>
+
+                <!-- Chat History gets appended here -->
+                <div id="chat-history" class="flex flex-col gap-4"></div>
+                
+                <!-- Quick actions -->
+                <div class="flex gap-2 flex-wrap mt-auto justify-end pt-4" id="chat-presets">
+                    <button class="preset-btn text-xs bg-rail-base hover:bg-rail-border px-3 py-1.5 rounded-full border border-rail-border transition-colors text-rail-textMuted">Best train from Borivali to Churchgate at 9 AM</button>
+                    <button class="preset-btn text-xs bg-rail-base hover:bg-rail-border px-3 py-1.5 rounded-full border border-rail-border transition-colors text-rail-textMuted">Least crowded option right now</button>
+                    <button class="preset-btn text-xs bg-rail-base hover:bg-rail-border px-3 py-1.5 rounded-full border border-rail-border transition-colors text-rail-textMuted">How long from Andheri to Dadar right now?</button>
+                </div>
+            </div>
+
+            <!-- Input Box -->
+            <div class="p-4 border-t border-rail-border shrink-0 bg-rail-panel">
+                <form id="chat-form" class="relative flex items-center">
+                    <input id="chat-input" type="text" placeholder="Ask about trains, routes..." class="w-full bg-rail-base border border-rail-border rounded-full pl-5 pr-12 py-3.5 text-sm focus:outline-none focus:border-rail-primary/50 text-white placeholder-rail-textMuted transition-colors" autocomplete="off">
+                    <button type="submit" id="chat-send" class="absolute right-2 w-8 h-8 bg-rail-primary hover:bg-rail-primary/90 text-white rounded-full flex items-center justify-center transition-colors shadow-lg">
+                        <span class="material-symbols-outlined text-sm">arrow_upward</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ======================= -->
+        <!-- PANEL 2: JOURNEY PLANNER-->
+        <!-- ======================= -->
+        <section id="panel-plan" class="panel flex-1 bg-rail-panel rounded-2xl border border-rail-border flex flex-col overflow-hidden relative">
+            <div class="p-4 border-b border-rail-border flex items-center justify-between shrink-0">
+                <h2 class="font-semibold text-white">Journey Planner</h2>
+                <div class="flex gap-2">
+                    <button onclick="toggleMaximize('panel-plan')" class="w-8 h-8 rounded-lg bg-rail-base hover:bg-rail-border flex items-center justify-center transition-colors border border-transparent hover:border-rail-border/50 text-rail-textMuted hover:text-white">
+                        <span class="material-symbols-outlined text-sm" id="icon-panel-plan">open_in_full</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-5 space-y-6 flex justify-center">
+                <div class="w-full max-w-[360px] space-y-6">
+                    <!-- Search Form -->
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <label class="text-xs font-medium text-rail-textMuted mb-1 block">From:</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-rail-textMuted text-sm">location_on</span>
+                                <select id="plan-from" class="w-full bg-rail-base border border-rail-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-white appearance-none focus:outline-none cursor-pointer hover:border-rail-border/80">
+                                    <option>Loading stations...</option>
+                                </select>
+                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-rail-textMuted pointer-events-none text-sm">expand_more</span>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                                <button id="btn-swap" class="w-6 h-6 bg-rail-border hover:bg-rail-textMuted text-white rounded-full flex items-center justify-center shadow border border-rail-base transition-colors">
+                                    <span class="material-symbols-outlined text-[14px]">swap_vert</span>
+                                </button>
+                            </div>
+                            <label class="text-xs font-medium text-rail-textMuted mb-1 block">To:</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-rail-textMuted text-sm">sports_score</span>
+                                <select id="plan-to" class="w-full bg-rail-base border border-rail-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-white appearance-none focus:outline-none cursor-pointer hover:border-rail-border/80">
+                                    <option>Loading stations...</option>
+                                </select>
+                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-rail-textMuted pointer-events-none text-sm">expand_more</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-rail-textMuted mb-2 block">Preferences</label>
+                            <div class="flex bg-rail-base rounded-xl p-1 border border-rail-border w-full" id="pref-group">
+                                <button data-pref="balanced" class="pref-btn active flex-1 py-1.5 text-xs text-white bg-rail-primary rounded-lg font-medium shadow-sm transition-all">Balanced</button>
+                                <button data-pref="fastest" class="pref-btn flex-1 py-1.5 text-xs text-rail-textMuted hover:text-white transition-colors">Fastest</button>
+                                <button data-pref="least_crowded" class="pref-btn flex-1 py-1.5 text-xs text-rail-textMuted hover:text-white transition-colors">Comfort</button>
+                            </div>
+                        </div>
+
+                        <button id="btn-find" class="w-full py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-sm font-medium transition-all shadow-sm flex items-center justify-center gap-2">
+                            Find Best Train
+                            <span class="material-symbols-outlined text-sm hidden" id="find-spinner">autorenew</span>
+                        </button>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="results-container" class="hidden">
+                        <div class="flex items-center justify-between mb-3 border-b border-rail-border pb-2">
+                            <h3 class="text-sm font-semibold text-white">Best Pick</h3>
+                            <span class="text-xs text-rail-primary" id="res-eval">Evaluated</span>
+                        </div>
+
+                        <!-- Best Pick Card -->
+                        <div id="best-card" class="bg-rail-base border border-rail-primary/30 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden group mb-6">
+                            <div class="absolute inset-0 bg-rail-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div class="relative w-full flex justify-between items-start">
+                                <div>
+                                    <span class="text-lg font-bold text-white leading-none" id="best-time">00:00</span>
+                                    <span class="text-xs text-rail-textMuted mt-1 block" id="best-dur">Wait...</span>
+                                </div>
+                                <div class="flex flex-col items-end gap-1 relative">
+                                    <span class="text-xs font-semibold text-rail-success" id="best-type">Fast</span>
+                                    <div class="flex items-center mt-1">
+                                        <div class="w-1.5 h-1.5 rounded-full mr-1" id="best-crowd-dot"></div>
+                                        <span class="text-[10px]" id="best-crowd-txt">Medium Crowd</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-xs mt-3 text-rail-textMuted pt-2 border-t border-rail-border" id="best-name">Train Name</div>
+                        </div>
+
+                        <h3 class="text-sm font-semibold text-white mt-6 mb-3">Alternatives</h3>
+                        <div class="space-y-2" id="alternatives-list">
+                            <!-- Alternatives appended here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= -->
+        <!-- PANEL 3: LIVE MAP       -->
+        <!-- ======================= -->
+        <section id="panel-map" class="panel flex-1 bg-[#10141A] rounded-2xl border border-rail-border flex flex-col overflow-hidden relative">
+            
+            <!-- Map Overlay UI -->
+            <div class="absolute inset-0 z-0 overflow-hidden bg-[#0C1217]">
+                 <div id="map" class="w-full h-full opacity-80" style="z-index: 0;"></div>
+            </div>
+
+            <!-- Header UI over Map -->
+            <div class="absolute top-0 right-0 left-0 p-4 flex justify-between items-start pointer-events-none z-10">
+                <div class="bg-rail-success/20 border border-rail-success/30 text-rail-success px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 backdrop-blur-md pointer-events-auto shadow-lg shadow-black/20">
+                    <span class="material-symbols-outlined text-[14px]">rss_feed</span>
+                    <span id="live-count">Live Network...</span>
+                </div>
+                
+                <div class="flex gap-2 pointer-events-auto">
+                    <button onclick="toggleMaximize('panel-map')" class="w-8 h-8 rounded-lg bg-rail-base/80 hover:bg-rail-border flex items-center justify-center transition-colors border border-rail-border/50 text-white backdrop-blur-md">
+                        <span class="material-symbols-outlined text-sm" id="icon-panel-map">open_in_full</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map Controls -->
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-10">
+                <div class="flex flex-col bg-rail-base/60 backdrop-blur-md rounded-xl border border-rail-border shadow-lg overflow-hidden">
+                    <button class="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 transition-colors">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                    </button>
+                    <div class="w-full h-px bg-rail-border"></div>
+                    <button class="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 transition-colors">
+                        <span class="material-symbols-outlined text-sm">remove</span>
+                    </button>
+                </div>
+            </div>
+            
+        </section>
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // --- SHARED GLOBALS ---
+        let currentMaximizedPanel = null;
+        let STATIONS_DATA = [];
+        let mapObj = null;
+        let trainMarkers = {};
+        
+        // --- UI PANEL RESIZING ---
+        function toggleMaximize(panelId) {
+            const panels = ['panel-chat', 'panel-plan', 'panel-map'];
+            if (currentMaximizedPanel === panelId) {
+                panels.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.style.display = 'flex';
+                    el.classList.remove('flex-[3]', 'flex-[4]');
+                    el.classList.add('flex-1');
+                    document.getElementById('icon-' + id).innerText = 'open_in_full';
+                });
+                currentMaximizedPanel = null;
+            } else {
+                currentMaximizedPanel = panelId;
+                panels.forEach(id => {
+                    const el = document.getElementById(id);
+                    const elIcon = document.getElementById('icon-' + id);
+                    if (id === panelId) {
+                        el.style.display = 'flex';
+                        el.classList.remove('flex-1');
+                        el.classList.add('flex-[3]');
+                        elIcon.innerText = 'close_fullscreen';
+                    } else {
+                        el.style.display = 'none';
+                        el.classList.remove('flex-[3]', 'flex-1');
+                        elIcon.innerText = 'open_in_full';
+                    }
+                });
+            }
+            
+            // Allow CSS flex transitions to complete before telling Leaflet to re-measure and fetch new tiles
+            setTimeout(() => {
+                if(mapObj) mapObj.invalidateSize();
+            }, 50);
+            setTimeout(() => {
+                if(mapObj) mapObj.invalidateSize();
+            }, 300);
+        }
+
+        // --- BACKEND API CONNECTORS ---
+
+        // 1. STATIONS & JOURNEY PLANNER
+        let currentPreference = "balanced";
+
+        async function initPlanner() {
+            try {
+                const res = await fetch('/api/stations');
+                STATIONS_DATA = await res.json();
+                
+                const fromSelect = document.getElementById('plan-from');
+                const toSelect = document.getElementById('plan-to');
+                fromSelect.innerHTML = '';
+                toSelect.innerHTML = '';
+
+                STATIONS_DATA.forEach(s => {
+                    fromSelect.add(new Option(s.name, s.name));
+                    toSelect.add(new Option(s.name, s.name));
+                });
+                
+                // Set sensible defaults
+                fromSelect.value = "Borivali";
+                toSelect.value = "Churchgate";
+
+                renderMapStations(STATIONS_DATA);
+            } catch (err) {
+                console.error("Failed to load stations", err);
+            }
+        }
+
+        document.getElementById('btn-swap').addEventListener('click', () => {
+            const from = document.getElementById('plan-from');
+            const to = document.getElementById('plan-to');
+            const temp = from.value;
+            from.value = to.value;
+            to.value = temp;
+        });
+
+        document.querySelectorAll('.pref-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.pref-btn').forEach(b => {
+                    b.classList.remove('bg-rail-primary', 'text-white');
+                    b.classList.add('text-rail-textMuted');
+                });
+                e.target.classList.add('bg-rail-primary', 'text-white');
+                e.target.classList.remove('text-rail-textMuted');
+                currentPreference = e.target.dataset.pref;
+            });
+        });
+
+        document.getElementById('btn-find').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-find');
+            const spinner = document.getElementById('find-spinner');
+            const resultsBox = document.getElementById('results-container');
+            
+            const source = document.getElementById('plan-from').value;
+            const dest = document.getElementById('plan-to').value;
+
+            spinner.classList.remove('hidden');
+            spinner.classList.add('animate-spin');
+
+            try {
+                const now = new Date();
+                const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                
+                const res = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ source: source, destination: dest, preference: currentPreference, time: timeStr })
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                resultsBox.classList.remove('hidden');
+                document.getElementById('res-eval').innerText = `${data.meta.trains_evaluated} trains evaluated`;
+
+                // Render Best
+                const best = data.best;
+                document.getElementById('best-time').innerText = best.departs;
+                document.getElementById('best-dur').innerText = `Travel time: ~${best.travel_minutes} mins`;
+                document.getElementById('best-type').innerText = best.type.toUpperCase();
+                document.getElementById('best-crowd-txt').innerText = best.crowd + " Crowd";
+                document.getElementById('best-crowd-txt').style.color = best.crowd_color;
+                document.getElementById('best-crowd-dot').style.backgroundColor = best.crowd_color;
+                document.getElementById('best-name').innerText = best.name;
+
+                // Render Alts
+                const altList = document.getElementById('alternatives-list');
+                altList.innerHTML = '';
+                data.alternatives.forEach(alt => {
+                    altList.innerHTML += `
+                    <div class="bg-rail-base/50 border border-rail-border hover:border-rail-border/80 rounded-xl p-3 flex justify-between transition-colors cursor-pointer opacity-80">
+                        <div>
+                            <span class="font-bold text-sm text-white">${alt.departs}</span>
+                            <span class="text-xs text-rail-textMuted block">~${alt.travel_minutes} mins</span>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-[10px] font-medium text-rail-success uppercase">${alt.type}</span>
+                            <div class="flex items-center">
+                                <div class="w-1.5 h-1.5 rounded-full mr-1" style="background-color: ${alt.crowd_color}"></div>
+                                <span class="text-[10px]" style="color: ${alt.crowd_color}">${alt.crowd} Crowd</span>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+            } catch (err) {
+                console.error("Recommendation error", err);
+            } finally {
+                spinner.classList.add('hidden');
+                spinner.classList.remove('animate-spin');
+            }
+        });
+
+        // 2. CHAT PANEL
+        function appendChatMessage(text, role) {
+            const hist = document.getElementById('chat-history');
+            const isUser = (role === 'user');
+            
+            const div = document.createElement('div');
+            // Simplified markdown parse for bolding
+            let parsedText = text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>');
+            
+            div.className = isUser 
+                ? 'self-end bg-rail-primary text-white rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[85%] text-sm shadow-md'
+                : 'self-start bg-rail-base border border-rail-border text-rail-textMain rounded-2xl rounded-tl-sm px-4 py-3 max-w-[90%] text-sm shadow-sm leading-relaxed whitespace-pre-wrap';
+            
+            div.innerHTML = parsedText;
+            hist.appendChild(div);
+            
+            const container = document.getElementById('chat-messages-container');
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+
+        async function sendChatMessage(msg) {
+            const hist = document.getElementById('chat-history');
+            document.getElementById('chat-presets').style.display = 'none'; // hide presets after first use
+            
+            appendChatMessage(msg, 'user');
+            const loadingBubble = document.createElement('div');
+            loadingBubble.className = 'self-start bg-rail-base border border-rail-border text-rail-textMain rounded-2xl rounded-tl-sm px-4 py-3 text-sm loading-dots';
+            hist.appendChild(loadingBubble);
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+                
+                loadingBubble.remove();
+                
+                // Fixed Chat response mapping from 'reply' to 'response' based on Python API
+                if (data.response) {
+                    appendChatMessage(data.response, 'assistant');
+                } else if (data.explanation) {
+                    appendChatMessage(data.explanation, 'assistant');
+                } else {
+                    appendChatMessage("Sorry, I encountered an issue.", 'assistant');
+                }
+            } catch (err) {
+                loadingBubble.remove();
+                appendChatMessage("Network error connecting to AI.", 'assistant');
+            }
+        }
+
+        document.getElementById('chat-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const val = input.value.trim();
+            if (val) {
+                sendChatMessage(val);
+                input.value = '';
+            }
+        });
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => sendChatMessage(e.target.innerText));
+        });
+
+        // 3. LIVE MAP RENDERING
+        function initMap() {
+            if (mapObj) return;
+            mapObj = L.map('map', {
+                center: [19.2, 72.85], zoom: 11,
+                zoomControl: true,
+                attributionControl: false
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19, subdomains: 'abcd'
+            }).addTo(mapObj);
+
+            loadMapData();
+        }
+
+        async function loadMapData() {
+            try {
+                const res  = await fetch('/api/stations');
+                const data = await res.json();
+                const coords = data.map(s => [s.lat, s.lng]);
+
+                L.polyline(coords, { color: '#6366F1', weight: 4, opacity: .8 }).addTo(mapObj);
+
+                data.forEach(s => {
+                    const dot = L.circleMarker([s.lat, s.lng], {
+                        radius: 4, fillColor: '#22D3EE', color: '#fff', weight: 1.5, fillOpacity: 1
+                    }).addTo(mapObj);
+                    dot.bindPopup(`<b style="color:#F1F5F9">${s.name}</b><br/><span style="color:#94A3B8;font-size:11px">${s.zone} zone</span>`, { className: 'dark-popup' });
+                });
+
+                mapObj.fitBounds(L.latLngBounds(coords), { padding: [40, 40] });
+            } catch(e) { console.error("Map Data load error", e); }
+        }
+
+        function makeTrainIcon(color) {
+            return L.divIcon({
+                html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.2)">🚆</div>`,
+                iconSize: [28, 28], iconAnchor: [14, 14], className: ''
+            });
+        }
+
+        const btnColors = {"fast": "#F97316", "semi": "#A855F7", "slow": "#22D3EE"};
+
+        async function pollTrains() {
+            try {
+                const res  = await fetch('/api/live_trains');
+                const trains = await res.json();
+                const seen = new Set();
+                trains.forEach(t => {
+                    seen.add(t.id);
+                    const ll = [t.lat, t.lng];
+                    if (trainMarkers[t.id]) {
+                        trainMarkers[t.id].setLatLng(ll);
+                    } else {
+                        const m = L.marker(ll, { icon: makeTrainIcon(btnColors[t.type] || '#6366F1') }).addTo(mapObj);
+                        trainMarkers[t.id] = m;
+                    }
+                });
+                Object.keys(trainMarkers).forEach(id => {
+                    if (!seen.has(id)) { mapObj.removeLayer(trainMarkers[id]); delete trainMarkers[id]; }
+                });
+                
+                document.getElementById('live-count').textContent = `LIVE — ${trains.length} trains`;
+            } catch(e) {}
+        }
+
+        // Initialize application
+        window.addEventListener('DOMContentLoaded', () => {
+            initPlanner();
+            initMap();
+            setInterval(pollTrains, 4000);
+            setTimeout(pollTrains, 500); // Initial fast load
+        });
+    </script>
+</body>
+</html>

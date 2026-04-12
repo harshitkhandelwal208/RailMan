@@ -1,0 +1,10 @@
+fastapi 
+uvicorn[standard] 
+python-dotenv 
+pydantic 
+anthropic 
+openai 
+motor 
+pymongo 
+dnspython 
+certifi 
