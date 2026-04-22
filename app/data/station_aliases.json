@@ -1,0 +1,292 @@
+{
+  "Churchgate": [
+    "cg",
+    "church gate",
+    "churchgate stn"
+  ],
+  "Marine Lines": [
+    "marine",
+    "ml",
+    "marine lines stn"
+  ],
+  "Charni Road": [
+    "charni",
+    "charni rd",
+    "cr"
+  ],
+  "Grant Road": [
+    "grant",
+    "grant rd",
+    "gr"
+  ],
+  "Mumbai Central": [
+    "bombay central",
+    "central",
+    "mumbai central stn"
+  ],
+  "Mahalaxmi": [
+    "mahalakshmi",
+    "mx"
+  ],
+  "Lower Parel": [
+    "lowerparel",
+    "lp"
+  ],
+  "Prabhadevi (Elphinstone Road)": [
+    "prabhadevi",
+    "elphinstone",
+    "elphinstone road",
+    "pbd"
+  ],
+  "Dadar": [
+    "dadar central",
+    "dadar west",
+    "dadar station"
+  ],
+  "Matunga Road": [
+    "matunga",
+    "matunga rd",
+    "mr"
+  ],
+  "Mahim": [
+    "mahim stn",
+    "mm"
+  ],
+  "Bandra": [
+    "ba",
+    "bdr",
+    "bandra stn"
+  ],
+  "Khar Road": [
+    "khar",
+    "khar rd",
+    "kr"
+  ],
+  "Santacruz": [
+    "santa cruz",
+    "stc",
+    "santacruz stn"
+  ],
+  "Vile Parle": [
+    "parle",
+    "vile parle stn",
+    "vp"
+  ],
+  "Andheri": [
+    "adh",
+    "andheri stn"
+  ],
+  "Jogeshwari": [
+    "jog",
+    "jogeshwari stn"
+  ],
+  "Goregaon": [
+    "ggn",
+    "goregaon stn"
+  ],
+  "Malad": [
+    "mlad",
+    "malad stn"
+  ],
+  "Kandivali": [
+    "kdv",
+    "kandivli",
+    "kandivali stn"
+  ],
+  "Borivali": [
+    "bvi",
+    "borivli",
+    "borivali stn"
+  ],
+  "Dahisar": [
+    "dah",
+    "dahisar stn"
+  ],
+  "Mira Road": [
+    "mira",
+    "mira rd",
+    "mroad"
+  ],
+  "Bhayandar": [
+    "by",
+    "bhayander",
+    "bhayandar stn"
+  ],
+  "Naigaon": [
+    "naigaon stn",
+    "ng"
+  ],
+  "Vasai Road": [
+    "vasai",
+    "vasai rd",
+    "bsr"
+  ],
+  "Nallasopara": [
+    "nsp",
+    "nalla sopara",
+    "nallasopara stn"
+  ],
+  "Virar": [
+    "vr",
+    "virar stn"
+  ],
+  "Chhatrapati Shivaji Maharaj Terminus": [
+    "csmt",
+    "mumbai cst",
+    "cst",
+    "vt",
+    "chhatrapati shivaji terminus",
+    "chhatrapati shivaji maharaj terminus"
+  ],
+  "Masjid": [
+    "masjid bunder",
+    "masjid station"
+  ],
+  "Sandhurst Road": [
+    "sandhurst",
+    "sandhurst rd",
+    "sandhurst road station"
+  ],
+  "Byculla": [
+    "byculla station"
+  ],
+  "Chinchpokli": [
+    "chinchpokli station"
+  ],
+  "Currey Road": [
+    "currey rd",
+    "currey road station"
+  ],
+  "Parel": [
+    "parel station",
+    "parel central"
+  ],
+  "Matunga": [
+    "matunga station",
+    "matunga road"
+  ],
+  "Sion": [
+    "sion station"
+  ],
+  "Kurla": [
+    "kurla central",
+    "kurla harbour",
+    "kurla station"
+  ],
+  "Vidyavihar": [
+    "vidyavihar station"
+  ],
+  "Ghatkopar": [
+    "ghatkopar station"
+  ],
+  "Vikhroli": [
+    "vikhroli station"
+  ],
+  "Kanjurmarg": [
+    "kanjurmarg station"
+  ],
+  "Bhandup": [
+    "bhandup station"
+  ],
+  "Nahur": [
+    "nahur station"
+  ],
+  "Mulund": [
+    "mulund station"
+  ],
+  "Thane": [
+    "thane station"
+  ],
+  "Kalwa": [
+    "kalwa station"
+  ],
+  "Mumbra": [
+    "mumbra station"
+  ],
+  "Diva": [
+    "diva station"
+  ],
+  "Kopar": [
+    "kopar station"
+  ],
+  "Dombivli": [
+    "dombivli station"
+  ],
+  "Thakurli": [
+    "thakurli station"
+  ],
+  "Kalyan Junction": [
+    "kalyan",
+    "kalyan station"
+  ],
+  "Dockyard Road": [
+    "dockyard rd",
+    "dockyard road station"
+  ],
+  "Reay Road": [
+    "reay rd",
+    "reay road station"
+  ],
+  "Cotton Green": [
+    "cotton green station"
+  ],
+  "Sewri": [
+    "sewri station"
+  ],
+  "Wadala Road": [
+    "wadala road station"
+  ],
+  "GTB Nagar": [
+    "gtb nagar",
+    "guru tegh bahadur nagar"
+  ],
+  "Chunabhatti": [
+    "chunabhatti station"
+  ],
+  "Tilak Nagar": [
+    "tilak nagar station"
+  ],
+  "Chembur": [
+    "chembur station"
+  ],
+  "Govandi": [
+    "govandi station"
+  ],
+  "Mankhurd": [
+    "mankhurd station"
+  ],
+  "Vashi": [
+    "vashi station"
+  ],
+  "Sanpada": [
+    "sanpada station"
+  ],
+  "Juinagar": [
+    "juinagar station"
+  ],
+  "Nerul": [
+    "nerul station"
+  ],
+  "CBD Belapur": [
+    "belapur",
+    "cbd belapur station"
+  ],
+  "Kharghar": [
+    "kharghar station"
+  ],
+  "Mansarovar": [
+    "mansarovar station"
+  ],
+  "Khandeshwar": [
+    "khandeshwar station"
+  ],
+  "Panvel": [
+    "panvel station"
+  ],
+  "Seawoods-Darave": [
+    "seawoods darave",
+    "seawoods-darave",
+    "seawoods",
+    "seawoods–darave"
+  ]
+}

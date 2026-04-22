@@ -1,0 +1,10 @@
+{
+  "project": "RailMan",
+  "updated_lines": [
+    "western",
+    "central",
+    "harbour"
+  ],
+  "station_count": 74,
+  "train_count": 1164
+}

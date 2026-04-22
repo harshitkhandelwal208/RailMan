@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic[email]
+anthropic
+openai
+motor
+pymongo
+dnspython
+certifi
+bcrypt
+python-jose[cryptography]
+email-validator
+# llama-cpp-python

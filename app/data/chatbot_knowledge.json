@@ -1,0 +1,901 @@
+{
+  "version": "3.0",
+  "domain": "Mumbai Western, Central & Harbour Line commuter assistant",
+  "faqs": [
+    {
+      "id": "service-hours",
+      "question": "What are the usual operating hours on the Western Line?",
+      "answer": "Daily suburban service typically starts around 05:00 and continues until shortly after midnight, but the exact first and last departures vary by terminal, train type, and weekday.",
+      "tags": [
+        "operating_hours",
+        "first_train",
+        "last_train",
+        "service_start",
+        "service_end"
+      ]
+    },
+    {
+      "id": "peak-crowd",
+      "question": "When is the Western Line most crowded?",
+      "answer": "The heaviest crowding is usually seen on weekday mornings from roughly 08:00 to 10:30 toward Churchgate, and on weekday evenings from roughly 18:00 to 20:30 toward Borivali and Virar.",
+      "tags": [
+        "crowd",
+        "peak",
+        "rush_hour",
+        "weekday"
+      ]
+    },
+    {
+      "id": "semi-fast",
+      "question": "What is a semi-fast train?",
+      "answer": "Semi-fast trains skip selected minor stations to reduce travel time while still serving more stops than a full fast service.",
+      "tags": [
+        "semi_fast",
+        "train_type",
+        "fast",
+        "slow"
+      ]
+    },
+    {
+      "id": "fast-vs-slow",
+      "question": "How should the bot explain fast versus slow trains?",
+      "answer": "Slow trains stop at every station. Fast trains skip many stations and mostly serve major stops such as Churchgate, Dadar, Bandra, Andheri, Borivali, and Virar.",
+      "tags": [
+        "fast",
+        "slow",
+        "train_type",
+        "stops"
+      ]
+    },
+    {
+      "id": "late-night-rollover",
+      "question": "What should happen if the user asks after the last train?",
+      "answer": "The assistant should return the first valid departure on the next service day and explicitly label it as a next-day departure to avoid confusion.",
+      "tags": [
+        "after_last_train",
+        "midnight",
+        "next_day",
+        "edge_case"
+      ]
+    },
+    {
+      "id": "same-station",
+      "question": "How should the bot respond when source and destination are the same?",
+      "answer": "The assistant should ask the user to choose a different destination because no train journey is needed when the origin and destination are identical.",
+      "tags": [
+        "same_station",
+        "validation",
+        "edge_case"
+      ]
+    },
+    {
+      "id": "ambiguous-station",
+      "question": "How should ambiguous station mentions be handled?",
+      "answer": "Use station aliases and common abbreviations first. If a term still maps to multiple places or lines, ask a short clarifying question rather than making a risky assumption.",
+      "tags": [
+        "station_alias",
+        "nlu",
+        "clarify",
+        "ambiguity"
+      ]
+    },
+    {
+      "id": "line-scope",
+      "question": "What is the project scope for route answers?",
+      "answer": "The current product scope is Mumbai Western suburban stations from Churchgate to Virar. If the user asks about another corridor, the bot should say that clearly instead of inventing data.",
+      "tags": [
+        "scope",
+        "western_line",
+        "unsupported_route"
+      ]
+    },
+    {
+      "id": "ticketing",
+      "question": "How should ticketing questions be answered?",
+      "answer": "The chatbot can give general advice such as buying a suburban ticket, pass, or digital ticket before travel, but it should avoid quoting fares unless a verified fare source is integrated.",
+      "tags": [
+        "ticket",
+        "pass",
+        "fare",
+        "general_guidance"
+      ]
+    },
+    {
+      "id": "safety",
+      "question": "What safety guidance should be given?",
+      "answer": "Remind riders to stand behind the line, avoid boarding moving trains, keep bags secure during peak hours, and use official railway information for disruption alerts.",
+      "tags": [
+        "safety",
+        "platform",
+        "peak",
+        "advice"
+      ]
+    },
+    {
+      "id": "accessibility",
+      "question": "How should accessibility questions be handled?",
+      "answer": "Give cautious guidance, mention that station facilities can vary, and encourage verifying assistance arrangements locally when the request is time-sensitive.",
+      "tags": [
+        "accessibility",
+        "assistance",
+        "facilities"
+      ]
+    },
+    {
+      "id": "offline-mode",
+      "question": "What changes in offline mode?",
+      "answer": "Offline mode should rely on the local model, stored MongoDB memory, and bundled knowledge files. No live internet calls should be required for core route and FAQ responses.",
+      "tags": [
+        "offline",
+        "local_model",
+        "mongodb",
+        "knowledge_base"
+      ]
+    },
+    {
+      "id": "memory-followup",
+      "question": "How should follow-up questions use memory?",
+      "answer": "If the user asks a follow-up like 'what about the fastest one' or 'is it crowded', the assistant should reuse the most recent route entities from conversation memory when they are still relevant.",
+      "tags": [
+        "memory",
+        "follow_up",
+        "context",
+        "conversation"
+      ]
+    },
+    {
+      "id": "performance",
+      "question": "How should memory retrieval stay fast?",
+      "answer": "Keep a short chronological window for the live conversation, index by conversation_id and timestamp, and retrieve only a few relevant older turns by text search or keyword overlap.",
+      "tags": [
+        "performance",
+        "memory_retrieval",
+        "mongodb_index"
+      ]
+    },
+    {
+      "id": "privacy",
+      "question": "What privacy guidance applies to local chat history?",
+      "answer": "Store only the fields needed for context, keep the database on the user's machine or trusted LAN, and provide a clear way to inspect and clear saved conversations.",
+      "tags": [
+        "privacy",
+        "local_storage",
+        "memory",
+        "clear_history"
+      ]
+    },
+    {
+      "id": "ac-local",
+      "question": "Are there AC local trains on the Western Line?",
+      "answer": "Yes. AC local trains (also called AC EMU) run on selected timings on the Western Line. They require a separate AC-class ticket or pass and cost significantly more than regular suburban tickets, but are substantially less crowded and air-conditioned.",
+      "tags": [
+        "ac_local",
+        "air_conditioned",
+        "comfort",
+        "ticket",
+        "train_type"
+      ]
+    },
+    {
+      "id": "first-class",
+      "question": "Do Western Line trains have first-class coaches?",
+      "answer": "Yes. Standard (non-AC) suburban trains have first-class coaches. A first-class pass or ticket is needed. First-class coaches are usually less crowded than second class during peak hours.",
+      "tags": [
+        "first_class",
+        "ticket",
+        "pass",
+        "comfort",
+        "coach"
+      ]
+    },
+    {
+      "id": "ladies-compartment",
+      "question": "Are there ladies-only compartments?",
+      "answer": "Yes. Each local train has at least one reserved ladies compartment. During peak hours these can still be crowded. The position is usually at a fixed coach number from the engine end.",
+      "tags": [
+        "ladies",
+        "compartment",
+        "reservation",
+        "women",
+        "safety"
+      ]
+    },
+    {
+      "id": "monthly-pass",
+      "question": "Is a monthly pass cheaper than buying daily tickets?",
+      "answer": "For commuters who travel 20 or more days a month, a monthly season ticket is generally more economical than buying individual tickets each day. Exact pricing should be confirmed at the booking counter or official railway website.",
+      "tags": [
+        "monthly_pass",
+        "season_ticket",
+        "fare",
+        "cost",
+        "commuter"
+      ]
+    },
+    {
+      "id": "live-delay",
+      "question": "Can the bot check if a specific train is running late?",
+      "answer": "RailMan does not currently receive live delay feeds from the railway network. For real-time delay information check the National Train Enquiry System (NTES), the official Indian Railways app, or the station display boards.",
+      "tags": [
+        "delay",
+        "live_data",
+        "limitation",
+        "real_time",
+        "ntes"
+      ]
+    },
+    {
+      "id": "platform-number",
+      "question": "Can the bot tell the platform number for a train?",
+      "answer": "Platform assignments on the Western Line can change dynamically. RailMan does not have live platform data. Verify the platform at the station's departure board or enquiry window.",
+      "tags": [
+        "platform",
+        "limitation",
+        "live_data",
+        "station"
+      ]
+    },
+    {
+      "id": "multilingual-support",
+      "question": "Can users ask questions in Hindi or Marathi?",
+      "answer": "RailMan understands simple queries in Hindi and Marathi transliterated in English letters (e.g., 'Borivali se Churchgate ka train'). Responses are given in English. Native-script input is not yet supported.",
+      "tags": [
+        "hindi",
+        "marathi",
+        "multilingual",
+        "language",
+        "nlu"
+      ]
+    },
+    {
+      "id": "dadar-interchange",
+      "question": "How do commuters switch between Western and Central lines at Dadar?",
+      "answer": "Dadar is a major interchange. Passengers alight at Dadar (Western) and walk across the foot overbridge to Dadar (Central), which takes about 5–10 minutes. During peak hours the concourse is extremely congested; allow extra time.",
+      "tags": [
+        "dadar",
+        "interchange",
+        "central_line",
+        "transfer",
+        "connection"
+      ]
+    },
+    {
+      "id": "luggage-policy",
+      "question": "What luggage is allowed on suburban trains?",
+      "answer": "There is an informal permissible luggage allowance for suburban trains. Large suitcases and bicycles are generally not permitted during peak hours and may be refused entry by railway staff. Check with railway authorities for the latest rules.",
+      "tags": [
+        "luggage",
+        "baggage",
+        "rules",
+        "policy",
+        "faq"
+      ]
+    },
+    {
+      "id": "railway-enquiry",
+      "question": "What is the railway enquiry number?",
+      "answer": "The national railway enquiry helpline is 139. For Mumbai suburban queries you can also visit the station enquiry window or the official CSMT helpdesk.",
+      "tags": [
+        "helpline",
+        "enquiry",
+        "139",
+        "contact",
+        "faq"
+      ]
+    },
+    {
+      "question": "What lines does RailMan cover now?",
+      "answer": "RailMan now covers the Western, Central, and Harbour suburban corridors, including multi-line journeys that require a train change at major interchanges such as Dadar and Kurla.",
+      "tags": [
+        "western",
+        "central",
+        "harbour",
+        "interchange"
+      ],
+      "id": "what-lines-does-railman-cover-now"
+    },
+    {
+      "question": "How do I travel from Western Line to Central Line?",
+      "answer": "Use the Western Line to reach Dadar, transfer to the Central Line there, and continue on the fastest Central Line service for your destination. RailMan now computes that transfer automatically.",
+      "tags": [
+        "dadar",
+        "transfer",
+        "western_line",
+        "central_line"
+      ],
+      "id": "how-do-i-travel-from-western-line-to-central-line"
+    },
+    {
+      "question": "How do I travel from Central Line to Harbour Line?",
+      "answer": "RailMan can route you through Central Line interchanges such as Kurla or Sandhurst Road and choose the best connecting Harbour Line service for the rest of the trip.",
+      "tags": [
+        "kurla",
+        "sandhurst_road",
+        "harbour_line",
+        "transfer"
+      ],
+      "id": "how-do-i-travel-from-central-line-to-harbour-line"
+    },
+    {
+      "id": "transfer-suggestions",
+      "question": "When should the assistant suggest switching trains?",
+      "answer": "If a transfer route is faster or noticeably more comfortable, the assistant should recommend it and clearly show the interchange station and both legs. It can also suggest a different train on the same line when that is the better option.",
+      "tags": [
+        "transfer",
+        "switch",
+        "fastest",
+        "comfortable",
+        "line"
+      ]
+    }
+  ],
+  "station_notes": [
+    {
+      "id": "note-churchgate",
+      "station": "Churchgate",
+      "notes": [
+        "Southern terminal with heavy outbound crowd in the evening peak.",
+        "Fast services often originate here, so terminal departures are useful for planning early boarding."
+      ],
+      "tags": [
+        "churchgate",
+        "terminal",
+        "fast",
+        "peak"
+      ]
+    },
+    {
+      "id": "note-dadar",
+      "station": "Dadar",
+      "notes": [
+        "Major interchange area with consistently high crowd levels.",
+        "Users asking about Dadar often care about crowd conditions as much as pure travel time."
+      ],
+      "tags": [
+        "dadar",
+        "interchange",
+        "crowd",
+        "peak"
+      ]
+    },
+    {
+      "id": "note-bandra",
+      "station": "Bandra",
+      "notes": [
+        "High-demand station with strong commuter traffic in both peak windows.",
+        "Northbound users from Bandra often balance comfort and time rather than choosing the absolute fastest train."
+      ],
+      "tags": [
+        "bandra",
+        "crowd",
+        "commuter",
+        "northbound"
+      ]
+    },
+    {
+      "id": "note-andheri",
+      "station": "Andheri",
+      "notes": [
+        "Busy interchange zone with metro connectivity and frequent platform crowding.",
+        "Short-haul southbound trips from Andheri often have a nearer slow train before the next semi-fast."
+      ],
+      "tags": [
+        "andheri",
+        "interchange",
+        "crowd",
+        "southbound"
+      ]
+    },
+    {
+      "id": "note-borivali",
+      "station": "Borivali",
+      "notes": [
+        "Large suburban hub and a common origin for fast north-south commuters.",
+        "Users from Borivali often ask for the earliest departure that still stops at their destination."
+      ],
+      "tags": [
+        "borivali",
+        "hub",
+        "fast",
+        "commuter"
+      ]
+    },
+    {
+      "id": "note-virar",
+      "station": "Virar",
+      "notes": [
+        "Northern terminal with long-distance commuter demand.",
+        "Trip planning from or to Virar should clearly separate fast and slow travel times because the difference is substantial."
+      ],
+      "tags": [
+        "virar",
+        "terminal",
+        "long_distance",
+        "fast",
+        "slow"
+      ]
+    },
+    {
+      "id": "note-mahalaxmi",
+      "station": "Mahalaxmi",
+      "notes": [
+        "Close to the Mahalaxmi Racecourse and the ISKCON temple area.",
+        "Moderate crowd levels; often used by Worli and Lower Parel office commuters."
+      ],
+      "tags": [
+        "mahalaxmi",
+        "station_note",
+        "crowd"
+      ]
+    },
+    {
+      "id": "note-lower-parel",
+      "station": "Lower Parel",
+      "notes": [
+        "Major business district hub — home to corporate offices, malls, and entertainment.",
+        "Very high crowd levels during weekday peak due to office and retail traffic."
+      ],
+      "tags": [
+        "lower_parel",
+        "station_note",
+        "business",
+        "crowd",
+        "peak"
+      ]
+    },
+    {
+      "id": "note-malad",
+      "station": "Malad",
+      "notes": [
+        "Large residential suburb with high commuter volume northward in the evening.",
+        "Fast trains stop here, making it a good boarding point for northbound commuters."
+      ],
+      "tags": [
+        "malad",
+        "station_note",
+        "residential",
+        "northbound",
+        "fast"
+      ]
+    },
+    {
+      "id": "note-kandivali",
+      "station": "Kandivali",
+      "notes": [
+        "Busy residential station between Borivali and Malad.",
+        "Semi-fast trains serve Kandivali; fast trains do not stop here."
+      ],
+      "tags": [
+        "kandivali",
+        "station_note",
+        "semi_fast",
+        "residential"
+      ]
+    },
+    {
+      "id": "note-vasai-road",
+      "station": "Vasai Road",
+      "notes": [
+        "Junction station connecting the Western Line to the Vasai–Diva corridor.",
+        "Long-distance commuters from Virar and beyond board fast trains here."
+      ],
+      "tags": [
+        "vasai_road",
+        "junction",
+        "station_note",
+        "long_distance"
+      ]
+    },
+    {
+      "id": "note-nallasopara",
+      "station": "Nallasopara",
+      "notes": [
+        "High-density residential area generating heavy southbound morning traffic.",
+        "Evening northbound platforms are very crowded between 7 PM and 9 PM."
+      ],
+      "tags": [
+        "nallasopara",
+        "station_note",
+        "crowd",
+        "residential",
+        "peak"
+      ]
+    },
+    {
+      "id": "note-mira-road",
+      "station": "Mira Road",
+      "notes": [
+        "Fast-growing residential hub with strong morning south-bound commuter demand.",
+        "Fast trains stop here making it a preferred boarding point over Bhayandar for commuters."
+      ],
+      "tags": [
+        "mira_road",
+        "station_note",
+        "residential",
+        "fast",
+        "southbound"
+      ]
+    },
+    {
+      "id": "note-goregaon",
+      "station": "Goregaon",
+      "notes": [
+        "Commercial and residential mix; proximity to film city and NESCO.",
+        "Semi-fast trains stop here; crowding is high during morning peak."
+      ],
+      "tags": [
+        "goregaon",
+        "station_note",
+        "crowd",
+        "semi_fast"
+      ]
+    },
+    {
+      "id": "note-santacruz",
+      "station": "Santacruz",
+      "notes": [
+        "Near the domestic airport and several educational institutions.",
+        "Moderate to high crowd; popular with airport-bound travelers."
+      ],
+      "tags": [
+        "santacruz",
+        "station_note",
+        "airport",
+        "crowd"
+      ]
+    },
+    {
+      "id": "note-vile-parle",
+      "station": "Vile Parle",
+      "notes": [
+        "Near the international airport terminal area.",
+        "High demand from airport workers and nearby educational campuses."
+      ],
+      "tags": [
+        "vile_parle",
+        "station_note",
+        "airport",
+        "crowd"
+      ]
+    },
+    {
+      "id": "note-khar-road",
+      "station": "Khar Road",
+      "notes": [
+        "Upscale residential neighborhood; relatively lower peak crowd than Bandra.",
+        "Slow and semi-fast trains stop here; fast trains skip Khar Road."
+      ],
+      "tags": [
+        "khar_road",
+        "station_note",
+        "slow",
+        "semi_fast"
+      ]
+    },
+    {
+      "id": "note-prabhadevi",
+      "station": "Prabhadevi",
+      "notes": [
+        "Formerly known as Elphinstone Road — the station was renamed in 2017.",
+        "Close to Lower Parel business district; moderate to high crowd."
+      ],
+      "tags": [
+        "prabhadevi",
+        "elphinstone_road",
+        "rename",
+        "station_note",
+        "lower_parel"
+      ]
+    },
+    {
+      "id": "note-mahim",
+      "station": "Mahim",
+      "notes": [
+        "Near Mahim Causeway connecting to the Bandra area by road.",
+        "Slow and semi-fast trains serve Mahim; moderate crowd levels."
+      ],
+      "tags": [
+        "mahim",
+        "station_note",
+        "crowd"
+      ]
+    },
+    {
+      "id": "note-matunga-road",
+      "station": "Matunga Road",
+      "notes": [
+        "South Mumbai residential area; less busy than Dadar but still high weekday morning crowd.",
+        "Only slow trains stop at Matunga Road."
+      ],
+      "tags": [
+        "matunga_road",
+        "station_note",
+        "slow",
+        "residential"
+      ]
+    },
+    {
+      "id": "note-jogeshwari",
+      "station": "Jogeshwari",
+      "notes": [
+        "Growing suburb between Andheri and Goregaon.",
+        "Served by slow and some semi-fast trains; fast trains skip Jogeshwari."
+      ],
+      "tags": [
+        "jogeshwari",
+        "station_note",
+        "slow",
+        "semi_fast"
+      ]
+    },
+    {
+      "id": "note-dahisar",
+      "station": "Dahisar",
+      "notes": [
+        "Northern suburb near the Sanjay Gandhi National Park buffer zone.",
+        "Semi-fast and slow trains stop here; fast trains may skip Dahisar."
+      ],
+      "tags": [
+        "dahisar",
+        "station_note",
+        "northern",
+        "semi_fast"
+      ]
+    },
+    {
+      "id": "note-naigaon",
+      "station": "Naigaon",
+      "notes": [
+        "Affordable residential area with growing commuter demand.",
+        "Only slow trains stop at Naigaon; journey times to south Mumbai are lengthy."
+      ],
+      "tags": [
+        "naigaon",
+        "station_note",
+        "slow",
+        "residential"
+      ]
+    },
+    {
+      "id": "note-bhayandar",
+      "station": "Bhayandar",
+      "notes": [
+        "Dense residential suburb between Mira Road and Naigaon.",
+        "Served by semi-fast and slow trains; high morning outbound crowd."
+      ],
+      "tags": [
+        "bhayandar",
+        "station_note",
+        "semi_fast",
+        "residential",
+        "crowd"
+      ]
+    },
+    {
+      "id": "note-grant-road",
+      "station": "Grant Road",
+      "notes": [
+        "Inner south Mumbai station near residential and commercial areas.",
+        "Slow trains only; moderate weekday crowd."
+      ],
+      "tags": [
+        "grant_road",
+        "station_note",
+        "slow",
+        "south_mumbai"
+      ]
+    },
+    {
+      "id": "note-charni-road",
+      "station": "Charni Road",
+      "notes": [
+        "Close to Chowpatty beach and south Mumbai heritage areas.",
+        "Only slow trains stop; light crowd compared to nearby Churchgate."
+      ],
+      "tags": [
+        "charni_road",
+        "station_note",
+        "slow",
+        "south_mumbai"
+      ]
+    },
+    {
+      "id": "note-marine-lines",
+      "station": "Marine Lines",
+      "notes": [
+        "Second station from Churchgate terminus; scenic seafront location.",
+        "Only slow trains stop here; predominantly used by south Mumbai residents."
+      ],
+      "tags": [
+        "marine_lines",
+        "station_note",
+        "slow",
+        "south_mumbai"
+      ]
+    },
+    {
+      "id": "note-mumbai-central",
+      "station": "Mumbai Central",
+      "notes": [
+        "Major station with a long-distance railway terminus adjacent (MMCT).",
+        "High passenger traffic mixing suburban commuters and long-distance travelers."
+      ],
+      "tags": [
+        "mumbai_central",
+        "station_note",
+        "long_distance",
+        "crowd",
+        "terminus"
+      ]
+    },
+    {
+      "id": "note-dadar-interchange",
+      "station": "Dadar",
+      "note": "Primary Western↔Central interchange. Commuters often change trains here when crossing between the two corridors.",
+      "tags": [
+        "dadar",
+        "interchange",
+        "western_line",
+        "central_line"
+      ]
+    },
+    {
+      "id": "note-kurla-interchange",
+      "station": "Kurla",
+      "note": "Major Central↔Harbour interchange used for trips across the eastern and Navi Mumbai corridors.",
+      "tags": [
+        "kurla",
+        "interchange",
+        "central_line",
+        "harbour_line"
+      ]
+    },
+    {
+      "id": "note-sandhurst-road-interchange",
+      "station": "Sandhurst Road",
+      "note": "An additional Central↔Harbour connection near the south Mumbai terminal area.",
+      "tags": [
+        "sandhurst_road",
+        "interchange",
+        "central_line",
+        "harbour_line"
+      ]
+    }
+  ],
+  "edge_cases": [
+    {
+      "id": "edge-before-first-train",
+      "title": "Before the first train",
+      "guidance": "If the requested time is before service begins, return the earliest valid departure later that morning and explain that service has not started yet.",
+      "tags": [
+        "first_train",
+        "early_morning",
+        "edge_case"
+      ]
+    },
+    {
+      "id": "edge-after-last-train",
+      "title": "After the last train",
+      "guidance": "Return the next chronological departure on the following day and include a next-day label in both API data and user-facing text.",
+      "tags": [
+        "last_train",
+        "midnight",
+        "next_day",
+        "edge_case"
+      ]
+    },
+    {
+      "id": "edge-missing-destination",
+      "title": "Missing source or destination",
+      "guidance": "If the user gives only one station, ask for the missing station instead of guessing a default route.",
+      "tags": [
+        "validation",
+        "missing_slot",
+        "clarify"
+      ]
+    },
+    {
+      "id": "edge-unsupported-line",
+      "title": "Unsupported line request",
+      "guidance": "Politely explain that the current dataset only covers the Western Line and avoid fabricating Central or Harbour line schedules.",
+      "tags": [
+        "scope",
+        "unsupported_route",
+        "guardrail"
+      ]
+    },
+    {
+      "id": "edge-non-western-station",
+      "title": "Station on another railway line",
+      "guidance": "If the user mentions stations across Western, Central, or Harbour corridors, answer using the multi-line network rather than falling back to an old Western-only limitation.",
+      "tags": [
+        "scope",
+        "multi_line",
+        "guardrail"
+      ]
+    },
+    {
+      "id": "edge-prabhadevi-alias",
+      "title": "Elphinstone Road vs Prabhadevi",
+      "guidance": "When a user mentions Elphinstone Road, resolve it to Prabhadevi (the current station name since 2017) before computing any route or schedule.",
+      "tags": [
+        "prabhadevi",
+        "elphinstone_road",
+        "alias",
+        "rename",
+        "edge_case"
+      ]
+    },
+    {
+      "id": "edge-ac-local-vs-regular",
+      "title": "AC local vs regular local train preference",
+      "guidance": "If the user asks for the most comfortable or least crowded option and an AC local is available, mention it as a premium alternative with higher fare, letting the user decide.",
+      "tags": [
+        "ac_local",
+        "comfort",
+        "preference",
+        "edge_case",
+        "train_type"
+      ]
+    },
+    {
+      "id": "edge-multilingual-query",
+      "title": "Hindi or Marathi transliterated query",
+      "guidance": "Detect common Hindi/Marathi travel keywords such as 'se', 'tak', 'ka train', 'pudhacha', and treat them as route query components. Always respond in English.",
+      "tags": [
+        "hindi",
+        "marathi",
+        "multilingual",
+        "nlu",
+        "edge_case"
+      ]
+    },
+    {
+      "id": "edge-time-ambiguity",
+      "title": "Ambiguous AM/PM time",
+      "guidance": "If the user says '8 o'clock' without AM/PM, use conversation context or current time of day to infer the intended period. If still ambiguous, ask a short clarifying question.",
+      "tags": [
+        "time",
+        "ambiguity",
+        "am_pm",
+        "nlu",
+        "clarify",
+        "edge_case"
+      ]
+    },
+    {
+      "id": "edge-fast-skips-station",
+      "title": "User requests fast train to a station that fast trains skip",
+      "guidance": "If the user explicitly asks for a fast train but their destination is not served by fast trains (e.g., Kandivali, Khar Road), explain this clearly and offer the next semi-fast or slow option instead.",
+      "tags": [
+        "fast",
+        "stops",
+        "skip",
+        "validation",
+        "edge_case"
+      ]
+    }
+  ],
+  "response_policies": [
+    {
+      "topic": "multi-line routing",
+      "guidance": "Explain Western, Central, and Harbour routes clearly. When a trip needs a transfer, surface the interchange station and the two separate train legs instead of pretending one train covers the whole journey.",
+      "tags": [
+        "multi_line",
+        "transfer",
+        "route_planning"
+      ],
+      "id": "multi-line-routing"
+    },
+    {
+      "topic": "realistic scope",
+      "guidance": "Never claim live platform assignments or exact delays that RailMan does not actually track. Keep responses concise and route-focused.",
+      "tags": [
+        "scope",
+        "live_data",
+        "accuracy"
+      ],
+      "id": "realistic-scope"
+    }
+  ]
+}

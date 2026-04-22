@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>RailMan AI — Mumbai Suburban Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        rail: {
+                            base: '#0B0D14', panel: '#151720', panelHover: '#1B1E29',
+                            border: '#2A2D3A', primary: '#5B4DFF',
+                            textMain: '#E2E8F0', textMuted: '#94A3B8',
+                            success: '#22C55E', warning: '#EAB308', danger: '#EF4444'
+                        }
+                    },
+                    screens: { xs: '480px' }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { --vh: 1vh; }
+        body { background-color: #0B0D14; color: #E2E8F0; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .fill-icon { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2A2D3A; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* --- Layout --- */
+        .dashboard-container {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            height: calc(100vh - 3.5rem);
+            padding: 1rem;
+            overflow: hidden;
+        }
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+                height: auto;
+                min-height: calc(100vh - 3.5rem);
+                overflow-y: auto;
+                padding: 0.75rem;
+                gap: 0.75rem;
+            }
+        }
+
+        /* Panel */
+        .panel {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 0;
+        }
+        @media (min-width: 769px) {
+            .panel { flex: 1; }
+            .panel.maximized { flex: 4; }
+            .panel.minimized { display: none !important; }
+        }
+        @media (max-width: 768px) {
+            .panel { width: 100%; flex-shrink: 0; }
+            #panel-chat  { height: 60vh; min-height: 400px; }
+            #panel-plan  { height: auto; min-height: 480px; }
+            #panel-map   { height: 55vh; min-height: 380px; }
+        }
+
+        /* Loading dots */
+        .loading-dots::after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%,20%  { color: rgba(0,0,0,0); text-shadow: .25em 0 0 rgba(0,0,0,0),.5em 0 0 rgba(0,0,0,0); }
+            40%     { color: white; text-shadow: .25em 0 0 rgba(0,0,0,0),.5em 0 0 rgba(0,0,0,0); }
+            60%     { text-shadow: .25em 0 0 white,.5em 0 0 rgba(0,0,0,0); }
+            80%,100%{ text-shadow: .25em 0 0 white,.5em 0 0 white; }
+        }
+
+        /* Leaflet dark popup overrides */
+        .leaflet-popup-content-wrapper {
+            background: #1B1E29 !important;
+            border: 1px solid #2A2D3A !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+            color: #E2E8F0 !important;
+            padding: 0 !important;
+        }
+        .leaflet-popup-content { margin: 0 !important; color: #E2E8F0 !important; }
+        .leaflet-popup-tip { background: #1B1E29 !important; }
+        .leaflet-popup-close-button { color: #94A3B8 !important; top: 8px !important; right: 10px !important; font-size: 18px !important; }
+        .leaflet-popup-close-button:hover { color: #E2E8F0 !important; }
+        .leaflet-container { background: #0C1217; }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 9000;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 1rem;
+        }
+        .modal-box {
+            background: #151720; border: 1px solid #2A2D3A; border-radius: 1.25rem;
+            width: 100%; max-width: 440px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Train marker pulse */
+        .train-marker-pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(91,77,255,0.4); }
+            50%      { box-shadow: 0 0 0 6px rgba(91,77,255,0); }
+        }
+
+        /* Tab indicator */
+        .tab-active {
+            color: white;
+            border-bottom: 2px solid #5B4DFF;
+        }
+
+        /* Settings toggle */
+        .toggle-track {
+            width: 40px; height: 22px; border-radius: 11px;
+            background: #2A2D3A; position: relative;
+            transition: background 0.2s; cursor: pointer; flex-shrink: 0;
+        }
+        .toggle-track.on { background: #5B4DFF; }
+        .toggle-thumb {
+            width: 16px; height: 16px; border-radius: 50%;
+            background: white; position: absolute; top: 3px; left: 3px;
+            transition: transform 0.2s;
+        }
+        .toggle-track.on .toggle-thumb { transform: translateX(18px); }
+    
+.panel, .modal-box, .bg-rail-base, .bg-rail-panel, .border-rail-border { backdrop-filter: blur(10px); }
+header { background: linear-gradient(180deg, rgba(21,23,32,0.98), rgba(15,17,26,0.94)); }
+body { background: radial-gradient(circle at top left, rgba(91,77,255,0.18), transparent 35%), radial-gradient(circle at bottom right, rgba(14,165,233,0.12), transparent 25%), #0B0D14; }
+.panel { box-shadow: 0 18px 60px rgba(0,0,0,0.35); border-radius: 1.5rem; overflow: hidden; }
+.panel > div { border-radius: 1.5rem; }
+.dashboard-container { gap: 1.25rem; padding: 1.25rem; }
+.tab-active { border-bottom-color: #8B5CF6; }
+.train-marker-pulse { box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 10px 28px rgba(0,0,0,0.35); }
+
+</style>
+</head>
+<body class="h-screen w-full flex flex-col overflow-hidden font-sans">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TOP HEADER
+════════════════════════════════════════════════════════════════ -->
+<header class="h-14 bg-rail-panel border-b border-rail-border flex items-center justify-between px-4 md:px-6 shrink-0 z-50">
+    <div class="flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-rail-primary fill-icon text-2xl">train</span>
+        <h1 class="text-base md:text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+            RailMan AI <span class="text-rail-textMuted text-xs md:text-sm font-normal hidden sm:inline">Western • Central • Harbour</span>
+        </h1>
+    </div>
+    <div class="flex items-center gap-2 md:gap-3">
+        <!-- Crowd badge -->
+        <div id="header-crowd" class="hidden sm:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-rail-border bg-rail-base/50 text-rail-textMuted">
+            <div class="w-2 h-2 rounded-full bg-gray-500" id="header-crowd-dot"></div>
+            <span id="header-crowd-label">Loading...</span>
+        </div>
+        <!-- Settings -->
+        <button id="btn-settings" onclick="openSettings()" class="w-8 h-8 rounded-full flex items-center justify-center text-rail-textMuted hover:text-white hover:bg-rail-border transition-colors">
+            <span class="material-symbols-outlined text-lg">settings</span>
+        </button>
+        <!-- User / Login -->
+        <button id="btn-user" onclick="openAuth()" class="flex items-center gap-1.5 text-sm text-rail-textMuted hover:text-white transition-colors bg-rail-base/50 px-2.5 py-1.5 rounded-full border border-rail-border">
+            <span class="material-symbols-outlined text-base fill-icon" id="user-avatar-icon">person</span>
+            <span id="user-label" class="hidden sm:inline text-xs">Sign In</span>
+        </button>
+    </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     AUTH MODAL
+════════════════════════════════════════════════════════════════ -->
+<div id="modal-auth" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-lg font-semibold text-white" id="auth-title">Sign In</h2>
+                <button onclick="closeAuth()" class="text-rail-textMuted hover:text-white">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-rail-border mb-5">
+                <button onclick="switchAuthTab('login')" id="tab-login" class="tab-active flex-1 pb-2.5 text-sm font-medium text-center transition-colors">Sign In</button>
+                <button onclick="switchAuthTab('register')" id="tab-register" class="flex-1 pb-2.5 text-sm font-medium text-center text-rail-textMuted hover:text-white transition-colors">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="form-login">
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-rail-textMuted mb-1 block">Email</label>
+                        <input id="login-email" type="email" placeholder="you@example.com"
+                            class="w-full bg-rail-base border border-rail-border rounded-xl px-4 py-2.5 text-sm text-white placeholder-rail-textMuted focus:outline-none focus:border-rail-primary/60 transition-colors">
+                    </div>
+                    <div>
+                        <label class="text-xs text-rail-textMuted mb-1 block">Password</label>
+                        <input id="login-password" type="password" placeholder="••••••••"
+                            class="w-full bg-rail-base border border-rail-border rounded-xl px-4 py-2.5 text-sm text-white placeholder-rail-textMuted focus:outline-none focus:border-rail-primary/60 transition-colors">
+                    </div>
+                    <div id="login-error" class="text-xs text-rail-danger hidden"></div>
+                    <button onclick="doLogin()" class="w-full py-2.5 bg-rail-primary hover:bg-rail-primary/90 text-white rounded-xl text-sm font-medium transition-colors mt-1">
+                        Sign In
+                    </button>
+                </div>
+                <div class="flex items-center gap-3 my-4">
+                    <div class="flex-1 h-px bg-rail-border"></div>
+                    <span class="text-xs text-rail-textMuted">or</span>
+                    <div class="flex-1 h-px bg-rail-border"></div>
+                </div>
+                <button onclick="doGuestSession()" class="w-full py-2.5 bg-rail-base border border-rail-border hover:border-rail-border/80 text-rail-textMuted hover:text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-base">person_outline</span>
+                    Continue as Guest
+                </button>
+            </div>
+
+            <!-- Register Form -->
+            <div id="form-register" class="hidden">
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-rail-textMuted mb-1 block">Name</label>
+                        <input id="reg-name" type="text" placeholder="Your name"
+                            class="w-full bg-rail-base border border-rail-border rounded-xl px-4 py-2.5 text-sm text-white placeholder-rail-textMuted focus:outline-none focus:border-rail-primary/60 transition-colors">
+                    </div>
+                    <div>
+                        <label class="text-xs text-rail-textMuted mb-1 block">Email</label>
+                        <input id="reg-email" type="email" placeholder="you@example.com"
+                            class="w-full bg-rail-base border border-rail-border rounded-xl px-4 py-2.5 text-sm text-white placeholder-rail-textMuted focus:outline-none focus:border-rail-primary/60 transition-colors">
+                    </div>
+                    <div>
+                        <label class="text-xs text-rail-textMuted mb-1 block">Password</label>
+                        <input id="reg-password" type="password" placeholder="Min 6 characters"
+                            class="w-full bg-rail-base border border-rail-border rounded-xl px-4 py-2.5 text-sm text-white placeholder-rail-textMuted focus:outline-none focus:border-rail-primary/60 transition-colors">
+                    </div>
+                    <div id="reg-error" class="text-xs text-rail-danger hidden"></div>
+                    <button onclick="doRegister()" class="w-full py-2.5 bg-rail-primary hover:bg-rail-primary/90 text-white rounded-xl text-sm font-medium transition-colors mt-1">
+                        Create Account
+                    </button>
+                </div>
+            </div>
+
+            <!-- Logged-in state -->
+            <div id="form-loggedin" class="hidden space-y-3">
+                <div class="flex items-center gap-3 bg-rail-base rounded-xl p-3 border border-rail-border">
+                    <div class="w-10 h-10 rounded-full bg-rail-primary/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-rail-primary fill-icon">person</span>
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-white" id="li-name">User</div>
+                        <div class="text-xs text-rail-textMuted" id="li-email">email</div>
+                    </div>
+                </div>
+                <button onclick="doClearMemory()" class="w-full py-2.5 bg-rail-base border border-rail-border hover:border-rail-warning/50 text-rail-textMuted hover:text-rail-warning rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-base">memory</span>
+                    Clear Chat Memory
+                </button>
+                <button onclick="doLogout()" class="w-full py-2.5 bg-rail-base border border-rail-danger/30 hover:bg-rail-danger/10 text-rail-danger rounded-xl text-sm font-medium transition-colors">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SETTINGS MODAL
+════════════════════════════════════════════════════════════════ -->
+<div id="modal-settings" class="modal-overlay hidden">
+    <div class="modal-box max-w-sm">
+        <div class="p-5">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-rail-primary fill-icon text-lg">settings</span>
+                    Settings
+                </h2>
+                <button onclick="closeSettings()" class="text-rail-textMuted hover:text-white">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+
+            <div class="space-y-1">
+                <!-- Section: Appearance -->
+                <p class="text-[10px] uppercase tracking-widest text-rail-textMuted font-semibold mb-2 pt-1">Appearance</p>
+
+                <div class="flex items-center justify-between py-2.5 border-b border-rail-border/50">
+                    <div>
+                        <div class="text-sm text-white">Map Style</div>
+                        <div class="text-xs text-rail-textMuted">Background tile layer</div>
+                    </div>
+                    <select id="setting-map-style" onchange="applyMapStyle()" class="bg-rail-base border border-rail-border rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none cursor-pointer">
+                        <option value="dark">Dark</option>
+                        <option value="streets">Streets</option>
+                        <option value="satellite">Satellite</option>
+                    </select>
+                </div>
+
+                <!-- Section: Trains -->
+                <p class="text-[10px] uppercase tracking-widest text-rail-textMuted font-semibold mb-2 pt-3">Live Trains</p>
+
+                <div class="flex items-center justify-between py-2.5 border-b border-rail-border/50">
+                    <div>
+                        <div class="text-sm text-white">Show Train Labels</div>
+                        <div class="text-xs text-rail-textMuted">Display name on marker</div>
+                    </div>
+                    <div class="toggle-track" id="toggle-labels" onclick="toggleSetting('labels')">
+                        <div class="toggle-thumb"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between py-2.5 border-b border-rail-border/50">
+                    <div>
+                        <div class="text-sm text-white">Animate Trains</div>
+                        <div class="text-xs text-rail-textMuted">Smooth position updates</div>
+                    </div>
+                    <div class="toggle-track on" id="toggle-animate" onclick="toggleSetting('animate')">
+                        <div class="toggle-thumb"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between py-2.5 border-b border-rail-border/50">
+                    <div>
+                        <div class="text-sm text-white">Poll Interval</div>
+                        <div class="text-xs text-rail-textMuted">Train refresh rate</div>
+                    </div>
+                    <select id="setting-poll-interval" onchange="applyPollInterval()" class="bg-rail-base border border-rail-border rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none cursor-pointer">
+                        <option value="4000">4 sec</option>
+                        <option value="8000">8 sec</option>
+                        <option value="15000">15 sec</option>
+                    </select>
+                </div>
+
+                <!-- Section: Journey -->
+                <p class="text-[10px] uppercase tracking-widest text-rail-textMuted font-semibold mb-2 pt-3">Journey Planner</p>
+
+                <div class="flex items-center justify-between py-2.5 border-b border-rail-border/50">
+                    <div>
+                        <div class="text-sm text-white">Default From</div>
+                    </div>
+                    <select id="setting-default-from" class="bg-rail-base border border-rail-border rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none cursor-pointer max-w-[120px]">
+                        <option value="">None</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-between py-2.5">
+                    <div>
+                        <div class="text-sm text-white">Default To</div>
+                    </div>
+                    <select id="setting-default-to" class="bg-rail-base border border-rail-border rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none cursor-pointer max-w-[120px]">
+                        <option value="">None</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="saveSettings(); closeSettings();" class="w-full mt-5 py-2.5 bg-rail-primary hover:bg-rail-primary/90 text-white rounded-xl text-sm font-medium transition-colors">
+                Save Settings
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRAIN DETAIL MODAL (click on train on map)
+════════════════════════════════════════════════════════════════ -->
+<div id="modal-train" class="modal-overlay hidden" onclick="if(event.target===this)closeTrainModal()">
+    <div class="modal-box max-w-sm">
+        <div class="p-5">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-base" id="td-icon" style="background:#5B4DFF">🚆</div>
+                    <div>
+                        <div class="text-sm font-semibold text-white" id="td-name">Train</div>
+                        <div class="text-xs text-rail-textMuted" id="td-id">#0000</div>
+                    </div>
+                </div>
+                <button onclick="closeTrainModal()" class="text-rail-textMuted hover:text-white">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+
+            <!-- Status cards -->
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="bg-rail-base rounded-xl p-3 border border-rail-border">
+                    <div class="text-[10px] uppercase tracking-wider text-rail-textMuted mb-1">Direction</div>
+                    <div class="text-sm font-medium text-white" id="td-direction">—</div>
+                </div>
+                <div class="bg-rail-base rounded-xl p-3 border border-rail-border">
+                    <div class="text-[10px] uppercase tracking-wider text-rail-textMuted mb-1">Type</div>
+                    <div class="text-sm font-medium text-white capitalize" id="td-type">—</div>
+                </div>
+                <div class="bg-rail-base rounded-xl p-3 border border-rail-border">
+                    <div class="text-[10px] uppercase tracking-wider text-rail-textMuted mb-1">Now At</div>
+                    <div class="text-sm font-medium text-white" id="td-current">—</div>
+                </div>
+                <div class="bg-rail-base rounded-xl p-3 border border-rail-border">
+                    <div class="text-[10px] uppercase tracking-wider text-rail-textMuted mb-1">Next Stop</div>
+                    <div class="text-sm font-medium text-white" id="td-next">—</div>
+                </div>
+            </div>
+
+            <!-- Crowd + ETA row -->
+            <div class="flex items-center justify-between bg-rail-base rounded-xl p-3 border border-rail-border mb-4">
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-rail-textMuted mb-1">Crowd Level</div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full" id="td-crowd-dot"></div>
+                        <span class="text-sm font-medium" id="td-crowd">—</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] uppercase tracking-wider text-rail-textMuted mb-1">Next in</div>
+                    <div class="text-sm font-medium text-white" id="td-eta">— min</div>
+                </div>
+            </div>
+
+            <!-- Stops list -->
+            <div>
+                <div class="text-xs text-rail-textMuted mb-2">Scheduled Stops</div>
+                <div class="max-h-32 overflow-y-auto space-y-0.5" id="td-stops-list"></div>
+            </div>
+
+            <button onclick="askAboutTrain()" class="w-full mt-4 py-2 bg-rail-base border border-rail-primary/40 hover:border-rail-primary text-rail-primary hover:text-white rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5">
+                <span class="material-symbols-outlined text-sm">smart_toy</span>
+                Ask AI about this train
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MAIN DASHBOARD
+════════════════════════════════════════════════════════════════ -->
+<main class="dashboard-container flex-1 w-full" id="dashboard-container">
+
+    <!-- ════════ PANEL 1: AI CHAT ════════ -->
+    <section id="panel-chat" class="panel bg-rail-panel rounded-2xl border border-rail-border flex flex-col overflow-hidden relative">
+        <div class="p-3 md:p-4 border-b border-rail-border flex items-center justify-between shrink-0">
+            <h2 class="font-semibold text-white text-sm flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-rail-primary fill-icon text-base">smart_toy</span>
+                AI Chat
+            </h2>
+            <div class="flex gap-1.5">
+                <button onclick="doClearMemory()" title="Clear memory" class="w-7 h-7 rounded-lg bg-rail-base hover:bg-rail-border flex items-center justify-center transition-colors text-rail-textMuted hover:text-rail-warning">
+                    <span class="material-symbols-outlined text-sm">memory</span>
+                </button>
+                <button onclick="toggleMaximize('panel-chat')" class="w-7 h-7 rounded-lg bg-rail-base hover:bg-rail-border hidden md:flex items-center justify-center transition-colors text-rail-textMuted hover:text-white">
+                    <span class="material-symbols-outlined text-sm" id="icon-panel-chat">open_in_full</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 min-h-0" id="chat-messages-container">
+            <div id="chat-empty-state" class="flex flex-col items-center justify-center gap-3 my-2 bg-rail-base/40 p-5 rounded-2xl border border-rail-border/50">
+                <div class="w-14 h-14 rounded-full bg-rail-border/40 flex items-center justify-center relative">
+                    <span class="material-symbols-outlined text-4xl text-[#7DA3DD] fill-icon">train</span>
+                    <div class="absolute inset-0 bg-[#7DA3DD] blur-xl opacity-20 rounded-full"></div>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-white font-semibold text-sm">Welcome to RailMan AI!</h3>
+                    <p class="text-xs text-rail-textMuted mt-1">Ask one question, then keep going. Route, crowd, and timing context stay in the conversation.</p>
+                </div>
+            </div>
+            <div id="chat-history" class="flex flex-col gap-3"></div>
+            <div class="flex gap-1.5 flex-wrap mt-auto justify-end pt-2" id="chat-presets">
+                <button class="preset-btn text-[11px] bg-rail-base hover:bg-rail-border px-2.5 py-1 rounded-full border border-rail-border transition-colors text-rail-textMuted">Best train Borivali → Churchgate 9 AM</button>
+                <button class="preset-btn text-[11px] bg-rail-base hover:bg-rail-border px-2.5 py-1 rounded-full border border-rail-border transition-colors text-rail-textMuted">Least crowded right now</button>
+                <button class="preset-btn text-[11px] bg-rail-base hover:bg-rail-border px-2.5 py-1 rounded-full border border-rail-border transition-colors text-rail-textMuted">Andheri to Dadar time?</button>
+            </div>
+        </div>
+
+        <div class="p-3 md:p-4 border-t border-rail-border shrink-0">
+            <form id="chat-form" class="flex items-center gap-2">
+                <input id="chat-input" type="text" placeholder="Ask about trains, routes, crowd..." autocomplete="off"
+                    class="flex-1 bg-rail-base border border-rail-border rounded-full pl-4 pr-3 py-2.5 text-sm focus:outline-none focus:border-rail-primary/50 text-white placeholder-rail-textMuted transition-colors min-w-0">
+                <button type="submit" id="chat-send" class="w-9 h-9 bg-rail-primary hover:bg-rail-primary/90 text-white rounded-full flex items-center justify-center transition-colors shadow-lg shrink-0">
+                    <span class="material-symbols-outlined text-sm">arrow_upward</span>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ════════ PANEL 2: JOURNEY PLANNER ════════ -->
+    <section id="panel-plan" class="panel bg-rail-panel rounded-2xl border border-rail-border flex flex-col overflow-hidden relative">
+        <div class="p-3 md:p-4 border-b border-rail-border flex items-center justify-between shrink-0">
+            <div>
+                <h2 class="font-semibold text-white text-sm flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-rail-primary fill-icon text-base">route</span>
+                    Journey Planner
+                </h2>
+                <p class="text-[11px] text-rail-textMuted mt-1">Choose start and end stations — RailMan picks the best direct or switching route automatically.</p>
+            </div>
+            <button onclick="toggleMaximize('panel-plan')" class="w-7 h-7 rounded-lg bg-rail-base hover:bg-rail-border hidden md:flex items-center justify-center transition-colors text-rail-textMuted hover:text-white">
+                <span class="material-symbols-outlined text-sm" id="icon-panel-plan">open_in_full</span>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-5 min-h-0">
+            <div class="w-full max-w-md mx-auto space-y-4">
+                <div class="rounded-2xl border border-rail-border bg-rail-base/50 p-4 md:p-5 shadow-lg shadow-black/10">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-[11px] font-medium text-rail-textMuted block">LINE</label>
+                        <span class="text-[10px] text-rail-textMuted">Pick a line or keep auto routing</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2" id="plan-line-group">
+                        <button type="button" class="line-btn rounded-xl border px-3 py-2 text-xs font-semibold transition-all" data-line="all" style="background: rgba(91,77,255,0.12); border-color: rgba(91,77,255,0.35); color: #fff;">Auto</button>
+                        <button type="button" class="line-btn rounded-xl border px-3 py-2 text-xs font-semibold transition-all" data-line="western" style="background: rgba(14,165,233,0.10); border-color: rgba(14,165,233,0.35); color: #E2E8F0;">Western</button>
+                        <button type="button" class="line-btn rounded-xl border px-3 py-2 text-xs font-semibold transition-all" data-line="central" style="background: rgba(34,197,94,0.10); border-color: rgba(34,197,94,0.35); color: #E2E8F0;">Central</button>
+                        <button type="button" class="line-btn rounded-xl border px-3 py-2 text-xs font-semibold transition-all" data-line="harbour" style="background: rgba(249,115,22,0.10); border-color: rgba(249,115,22,0.35); color: #E2E8F0;">Harbour</button>
+                    </div>
+                    <p class="mt-3 text-[11px] text-rail-textMuted">The planner still chooses the fastest or most comfortable route inside the selected line, and it can switch trains automatically when that is better.</p>
+                </div>
+                <div class="rounded-2xl border border-rail-border bg-rail-base/60 p-4 md:p-5 shadow-lg shadow-black/10">
+                    <div class="flex items-center gap-2 mb-4 text-xs text-rail-textMuted">
+                        <span class="material-symbols-outlined text-sm text-rail-primary">info</span>
+                        Manual train picking is off. The planner always suggests the fastest or most comfortable option, including transfers.
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[11px] font-medium text-rail-textMuted mb-1 block">FROM</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-rail-textMuted text-sm">location_on</span>
+                                <select id="plan-from" class="w-full bg-rail-panel border border-rail-border rounded-xl pl-9 pr-4 py-3 text-sm text-white appearance-none focus:outline-none cursor-pointer hover:border-rail-border/80 focus:border-rail-primary/50 transition-colors">
+                                    <option>Loading...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center -my-1">
+                            <button id="btn-swap" class="w-9 h-9 bg-rail-border hover:bg-rail-textMuted text-white rounded-full flex items-center justify-center shadow border border-rail-base transition-colors" aria-label="Swap stations">
+                                <span class="material-symbols-outlined text-sm">swap_vert</span>
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="text-[11px] font-medium text-rail-textMuted mb-1 block">TO</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-rail-textMuted text-sm">sports_score</span>
+                                <select id="plan-to" class="w-full bg-rail-panel border border-rail-border rounded-xl pl-9 pr-4 py-3 text-sm text-white appearance-none focus:outline-none cursor-pointer hover:border-rail-border/80 focus:border-rail-primary/50 transition-colors">
+                                    <option>Loading...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-rail-border bg-rail-base/40 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-[11px] font-medium text-rail-textMuted block">PREFERENCE</label>
+                        <span class="text-[10px] text-rail-textMuted">Auto switching enabled</span>
+                    </div>
+                    <div class="flex bg-rail-base rounded-xl p-1 border border-rail-border" id="pref-group">
+                        <button data-pref="balanced" class="pref-btn active flex-1 py-2 text-xs text-white bg-rail-primary rounded-lg font-medium transition-all">Balanced</button>
+                        <button data-pref="fastest" class="pref-btn flex-1 py-2 text-xs text-rail-textMuted hover:text-white transition-colors">Fastest</button>
+                        <button data-pref="least_crowded" class="pref-btn flex-1 py-2 text-xs text-rail-textMuted hover:text-white transition-colors">Comfort</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-3 text-[11px] text-rail-textMuted">
+                        <div class="rounded-xl border border-rail-border bg-rail-panel/80 px-3 py-2">No train selection clutter</div>
+                        <div class="rounded-xl border border-rail-border bg-rail-panel/80 px-3 py-2">Transfers chosen automatically</div>
+                    </div>
+                </div>
+
+                <button id="btn-find" class="w-full py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-base">search</span>
+                    Plan Journey
+                    <span class="material-symbols-outlined text-sm hidden animate-spin" id="find-spinner">autorenew</span>
+                </button>
+
+                <div id="results-container" class="hidden space-y-4 pt-1">
+                    <div class="flex items-center justify-between border-b border-rail-border pb-2">
+                        <h3 class="text-xs font-semibold text-white uppercase tracking-wider">Best Route</h3>
+                        <span class="text-[11px] text-rail-primary" id="res-eval">—</span>
+                    </div>
+
+                    <div id="best-card" class="bg-rail-base border border-rail-primary/30 rounded-xl p-4 relative overflow-hidden group cursor-pointer">
+                        <div class="absolute inset-0 bg-rail-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="flex justify-between items-start relative">
+                            <div>
+                                <span class="text-xl font-bold text-white" id="best-time">00:00</span>
+                                <span class="text-xs text-rail-textMuted mt-1 block" id="best-dur">—</span>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                <span id="best-type" class="px-2 py-1 rounded-full text-[10px] font-bold bg-rail-primary/15 text-rail-primary">FAST</span>
+                                <span id="best-crowd-txt" class="text-xs font-medium">—</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 relative">
+                            <div class="text-sm font-semibold text-white" id="best-name">Loading...</div>
+                            <div class="flex items-center gap-2 text-xs text-rail-textMuted mt-2">
+                                <div class="w-1.5 h-1.5 rounded-full" id="best-crowd-dot" style="background:#94A3B8"></div>
+                                <span id="best-meta">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-[11px] font-semibold uppercase tracking-[0.16em] text-rail-textMuted">Alternatives</h4>
+                            <span class="text-[10px] text-rail-textMuted">Auto-ranked</span>
+                        </div>
+                        <div id="alternatives-list" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════ PANEL 3: LIVE MAP ════════ -->
+    <section id="panel-map" class="panel bg-[#10141A] rounded-2xl border border-rail-border flex flex-col overflow-hidden relative">
+        <div class="absolute inset-0 z-0">
+            <div id="map" class="w-full h-full"></div>
+        </div>
+
+        <!-- Map HUD -->
+        <div class="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none z-10">
+            <div class="bg-rail-success/20 border border-rail-success/30 text-rail-success px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 backdrop-blur-md pointer-events-auto shadow-lg">
+                <span class="material-symbols-outlined text-[13px]">rss_feed</span>
+                <span id="live-count">Loading...</span>
+            </div>
+            <div class="flex gap-1.5 pointer-events-auto">
+                <button onclick="mapFitBounds()" class="w-8 h-8 rounded-lg bg-rail-base/80 backdrop-blur-md border border-rail-border/50 flex items-center justify-center text-rail-textMuted hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-sm">fit_screen</span>
+                </button>
+                <button onclick="toggleMaximize('panel-map')" class="w-8 h-8 rounded-lg bg-rail-base/80 backdrop-blur-md border border-rail-border/50 hidden md:flex items-center justify-center text-rail-textMuted hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-sm" id="icon-panel-map">open_in_full</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="absolute bottom-3 left-3 bg-rail-base/80 backdrop-blur-md border border-rail-border/50 rounded-xl p-2.5 z-10 space-y-1">
+            <div class="flex items-center gap-2 text-[10px] text-rail-textMuted"><div class="w-3 h-3 rounded-full" style="background:#60A5FA"></div>Western</div>
+            <div class="flex items-center gap-2 text-[10px] text-rail-textMuted"><div class="w-3 h-3 rounded-full" style="background:#34D399"></div>Central</div>
+            <div class="flex items-center gap-2 text-[10px] text-rail-textMuted"><div class="w-3 h-3 rounded-full" style="background:#F59E0B"></div>Harbour</div>
+            <div class="flex items-center gap-2 text-[10px] text-rail-textMuted pt-1 border-t border-rail-border/50"><div class="w-3 h-3 rounded-full" style="background:#E2E8F0"></div>Interchange</div>
+        </div>
+    </section>
+
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════════════════════════
+let STATIONS_DATA = [];
+let mapObj = null;
+let trainMarkers = {};
+let stationMarkers = [];
+let tileLayer = null;
+let currentMaximizedPanel = null;
+let pollIntervalId = null;
+let currentTrainData = null;  // for train detail modal
+let SESSION_ID = null;
+let CONVERSATION_ID = null;
+let USER = null;
+let AUTH_TOKEN = null;
+let CHAT_IS_BUSY = false;
+let CHAT_CONTEXT = [];
+let lastTrainDataMap = {};    // id -> train data for modal
+const LINE_COLORS = { western: "#60A5FA", central: "#34D399", harbour: "#F59E0B" };
+const LINE_LABELS = { western: 'Western', central: 'Central', harbour: 'Harbour' };
+function stationOptionLabel(s) {
+    const lines = (s.lines || []).map(line => LINE_LABELS[line] || line).join(' / ');
+    return lines ? `${s.name} — ${lines}` : s.name;
+}
+const RAIL_TIME_ZONE = 'Asia/Kolkata';
+const CHAT_HISTORY_LIMIT = 40;
+
+// Settings
+let SETTINGS = {
+    mapStyle: 'dark',
+    showLabels: false,
+    animate: true,
+    pollInterval: 4000,
+    defaultFrom: 'Borivali',
+    defaultTo: 'Churchgate',
+};
+
+function prettyLineName(line) {
+    return ({ western: 'Western', central: 'Central', harbour: 'Harbour' }[line] || 'All lines');
+}
+
+function routeKindLabel(route) {
+    if (!route || !route.best) return 'Route';
+    return route.best.kind === 'transfer' ? 'Switching route' : 'Direct route';
+}
+
+function formatRouteSummary(route) {
+    if (!route || !route.best) return '—';
+    const best = route.best;
+    if (best.kind === 'transfer' && best.legs?.length >= 2) {
+        return `${best.legs[0].train_name} → switch at ${best.transfer_station || 'interchange'} → ${best.legs[1].train_name}`;
+    }
+    return `${best.name || best.train_name} · ${prettyLineName(best.line)}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SESSION + AUTH
+// ═══════════════════════════════════════════════════════════════
+function initSession() {
+    // Load from localStorage (settings + session)
+    const saved = localStorage.getItem('railman_settings');
+    if (saved) try { SETTINGS = { ...SETTINGS, ...JSON.parse(saved) }; } catch(e) {}
+    SESSION_ID = localStorage.getItem('railman_session') || generateId();
+    localStorage.setItem('railman_session', SESSION_ID);
+    ensureConversationId();
+    AUTH_TOKEN = localStorage.getItem('railman_token') || null;
+    const savedUser = localStorage.getItem('railman_user');
+    if (savedUser) try { USER = JSON.parse(savedUser); applyLoggedIn(); } catch(e) {}
+}
+
+function generateId() {
+    return 'sess_' + Math.random().toString(36).substr(2, 12);
+}
+
+function getConversationStorageKey() {
+    return `railman_conversation:${SESSION_ID || 'guest'}`;
+}
+
+function ensureConversationId(forceNew = false) {
+    const storageKey = getConversationStorageKey();
+    const existing = forceNew ? null : localStorage.getItem(storageKey);
+    CONVERSATION_ID = existing || generateId().replace('sess_', 'conv_');
+    localStorage.setItem(storageKey, CONVERSATION_ID);
+    return CONVERSATION_ID;
+}
+
+function setConversationId(conversationId) {
+    if (!conversationId) return;
+    CONVERSATION_ID = conversationId;
+    localStorage.setItem(getConversationStorageKey(), CONVERSATION_ID);
+}
+
+function scrollChatToBottom() {
+    document.getElementById('chat-messages-container').scrollTop = 99999;
+}
+
+function syncChatChrome() {
+    const hasMessages = document.getElementById('chat-history').children.length > 0;
+    document.getElementById('chat-empty-state').classList.toggle('hidden', hasMessages);
+    document.getElementById('chat-presets').style.display = hasMessages ? 'none' : '';
+}
+
+function setChatBusy(isBusy) {
+    CHAT_IS_BUSY = isBusy;
+    const input = document.getElementById('chat-input');
+    const send = document.getElementById('chat-send');
+    input.disabled = isBusy;
+    send.disabled = isBusy;
+    send.classList.toggle('opacity-60', isBusy);
+    send.classList.toggle('cursor-not-allowed', isBusy);
+    input.placeholder = isBusy
+        ? 'RailMan AI is replying...'
+        : 'Ask about trains, routes, crowd...';
+}
+
+function resetChatUI() {
+    CHAT_CONTEXT = [];
+    document.getElementById('chat-history').innerHTML = '';
+    syncChatChrome();
+    scrollChatToBottom();
+}
+
+function snapshotContext(limit = CHAT_HISTORY_LIMIT) {
+    return CHAT_CONTEXT.slice(-limit).map(message => ({
+        role: message.role,
+        content: message.content,
+    }));
+}
+
+function sanitizeAssistantText(text) {
+    let cleaned = String(text || '').trim();
+    cleaned = cleaned.replace(/--- Relevant knowledge ---[\s\S]*?--- End knowledge ---/gi, '');
+    cleaned = cleaned.replace(/--- Relevant past context ---[\s\S]*?--- End past context ---/gi, '');
+    cleaned = cleaned.replace(/(?:^|\n)(SYSTEM|USER|ASSISTANT):[\s\S]*$/i, '').trim();
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
+    return cleaned;
+}
+
+async function loadChatHistory() {
+    if (!SESSION_ID) return;
+    ensureConversationId();
+    try {
+        const query = new URLSearchParams({
+            conversation_id: CONVERSATION_ID,
+            limit: String(CHAT_HISTORY_LIMIT),
+        });
+        const res = await fetch(`/api/chat/history/${encodeURIComponent(SESSION_ID)}?${query.toString()}`);
+        if (!res.ok) throw new Error('history_failed');
+        const data = await res.json();
+        const hist = document.getElementById('chat-history');
+        hist.innerHTML = '';
+        CHAT_CONTEXT = [];
+        (data.messages || []).forEach(message => {
+            const role = message.role || 'assistant';
+            const content = role === 'assistant'
+                ? sanitizeAssistantText(message.content || '')
+                : (message.content || '');
+            const normalized = {
+                role,
+                content,
+            };
+            CHAT_CONTEXT.push(normalized);
+            appendChatMessage(
+                normalized.content,
+                normalized.role,
+                { shouldScroll: false }
+            );
+        });
+        setConversationId(data.conversation_id || CONVERSATION_ID);
+    } catch(e) {
+        resetChatUI();
+        return;
+    }
+    syncChatChrome();
+    scrollChatToBottom();
+}
+
+function applyLoggedIn() {
+    document.getElementById('user-label').textContent = USER.name?.split(' ')[0] || 'Me';
+    document.getElementById('user-avatar-icon').textContent = 'account_circle';
+}
+
+function applyLoggedOut() {
+    document.getElementById('user-label').textContent = 'Sign In';
+    document.getElementById('user-avatar-icon').textContent = 'person';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH MODAL
+// ═══════════════════════════════════════════════════════════════
+function openAuth() {
+    const el = document.getElementById('modal-auth');
+    el.classList.remove('hidden');
+    if (USER) {
+        document.getElementById('form-login').classList.add('hidden');
+        document.getElementById('form-register').classList.add('hidden');
+        document.getElementById('form-loggedin').classList.remove('hidden');
+        document.getElementById('li-name').textContent = USER.name || 'User';
+        document.getElementById('li-email').textContent = USER.email || '';
+    } else {
+        switchAuthTab('login');
+    }
+}
+function closeAuth() { document.getElementById('modal-auth').classList.add('hidden'); }
+
+function switchAuthTab(tab) {
+    document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
+    document.getElementById('form-loggedin').classList.add('hidden');
+    document.getElementById('tab-login').className = tab === 'login'
+        ? 'tab-active flex-1 pb-2.5 text-sm font-medium text-center text-white transition-colors'
+        : 'flex-1 pb-2.5 text-sm font-medium text-center text-rail-textMuted hover:text-white transition-colors';
+    document.getElementById('tab-register').className = tab === 'register'
+        ? 'tab-active flex-1 pb-2.5 text-sm font-medium text-center text-white transition-colors'
+        : 'flex-1 pb-2.5 text-sm font-medium text-center text-rail-textMuted hover:text-white transition-colors';
+}
+
+async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.classList.add('hidden');
+    if (!email || !password) { errEl.textContent = 'Please fill all fields.'; errEl.classList.remove('hidden'); return; }
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) { errEl.textContent = data.detail || 'Login failed.'; errEl.classList.remove('hidden'); return; }
+        saveAuthData(data);
+        closeAuth();
+    } catch(e) { errEl.textContent = 'Network error.'; errEl.classList.remove('hidden'); }
+}
+
+async function doRegister() {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const errEl = document.getElementById('reg-error');
+    errEl.classList.add('hidden');
+    if (!name || !email || !password) { errEl.textContent = 'Please fill all fields.'; errEl.classList.remove('hidden'); return; }
+    if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.classList.remove('hidden'); return; }
+    try {
+        const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) { errEl.textContent = data.detail || 'Registration failed.'; errEl.classList.remove('hidden'); return; }
+        saveAuthData(data);
+        closeAuth();
+    } catch(e) { errEl.textContent = 'Network error.'; errEl.classList.remove('hidden'); }
+}
+
+async function doGuestSession() {
+    try {
+        const res = await fetch('/api/auth/guest', { method: 'POST' });
+        const data = await res.json();
+        SESSION_ID = data.session_id;
+    } catch(e) { SESSION_ID = generateId(); }
+    localStorage.setItem('railman_session', SESSION_ID);
+    ensureConversationId();
+    loadChatHistory();
+    closeAuth();
+}
+
+function saveAuthData(data) {
+    AUTH_TOKEN = data.access_token;
+    USER = data.user;
+    // Use auth user email as session for persistent memory
+    SESSION_ID = USER.email;
+    localStorage.setItem('railman_token', AUTH_TOKEN);
+    localStorage.setItem('railman_user', JSON.stringify(USER));
+    localStorage.setItem('railman_session', SESSION_ID);
+    ensureConversationId();
+    applyLoggedIn();
+    loadChatHistory();
+}
+
+function doLogout() {
+    AUTH_TOKEN = null; USER = null;
+    SESSION_ID = generateId();
+    localStorage.removeItem('railman_token');
+    localStorage.removeItem('railman_user');
+    localStorage.setItem('railman_session', SESSION_ID);
+    ensureConversationId(true);
+    applyLoggedOut();
+    loadChatHistory();
+    closeAuth();
+}
+
+async function doClearMemory() {
+    if (!SESSION_ID) return;
+    try {
+        await fetch('/api/clear_memory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: SESSION_ID, conversation_id: CONVERSATION_ID })
+        });
+        ensureConversationId(true);
+        resetChatUI();
+        showToast('Chat memory cleared ✓');
+        closeAuth();
+    } catch(e) { showToast('Error clearing memory'); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS MODAL
+// ═══════════════════════════════════════════════════════════════
+function openSettings() {
+    const m = document.getElementById('modal-settings');
+    m.classList.remove('hidden');
+    // Apply current settings to controls
+    document.getElementById('setting-map-style').value = SETTINGS.mapStyle;
+    document.getElementById('setting-poll-interval').value = SETTINGS.pollInterval;
+    const tl = document.getElementById('toggle-labels');
+    const ta = document.getElementById('toggle-animate');
+    if (SETTINGS.showLabels) tl.classList.add('on'); else tl.classList.remove('on');
+    if (SETTINGS.animate) ta.classList.add('on'); else ta.classList.remove('on');
+    // Populate station selects
+    const sFrom = document.getElementById('setting-default-from');
+    const sTo = document.getElementById('setting-default-to');
+    sFrom.innerHTML = '<option value="">None</option>';
+    sTo.innerHTML = '<option value="">None</option>';
+    STATIONS_DATA.forEach(s => {
+        sFrom.add(new Option(s.name, s.name));
+        sTo.add(new Option(s.name, s.name));
+    });
+    sFrom.value = SETTINGS.defaultFrom || '';
+    sTo.value = SETTINGS.defaultTo || '';
+}
+function closeSettings() { document.getElementById('modal-settings').classList.add('hidden'); }
+
+function toggleSetting(key) {
+    const track = document.getElementById('toggle-' + key);
+    const isOn = track.classList.toggle('on');
+    if (key === 'labels') SETTINGS.showLabels = isOn;
+    if (key === 'animate') SETTINGS.animate = isOn;
+}
+
+function saveSettings() {
+    SETTINGS.mapStyle = document.getElementById('setting-map-style').value;
+    SETTINGS.pollInterval = parseInt(document.getElementById('setting-poll-interval').value);
+    SETTINGS.defaultFrom = document.getElementById('setting-default-from').value;
+    SETTINGS.defaultTo = document.getElementById('setting-default-to').value;
+    localStorage.setItem('railman_settings', JSON.stringify(SETTINGS));
+    // Apply
+    applyMapStyle();
+    applyPollInterval();
+    if (SETTINGS.defaultFrom) document.getElementById('plan-from').value = SETTINGS.defaultFrom;
+    if (SETTINGS.defaultTo) document.getElementById('plan-to').value = SETTINGS.defaultTo;
+    showToast('Settings saved ✓');
+}
+
+const MAP_TILES = {
+    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    streets: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+};
+
+function applyMapStyle() {
+    const style = document.getElementById('setting-map-style').value;
+    SETTINGS.mapStyle = style;
+    if (!mapObj) return;
+    if (tileLayer) { mapObj.removeLayer(tileLayer); }
+    tileLayer = L.tileLayer(MAP_TILES[style] || MAP_TILES.dark, { maxZoom: 19, subdomains: 'abcd' }).addTo(mapObj);
+}
+
+function applyPollInterval() {
+    const val = parseInt(document.getElementById('setting-poll-interval').value);
+    SETTINGS.pollInterval = val;
+    if (pollIntervalId) { clearInterval(pollIntervalId); }
+    pollIntervalId = setInterval(pollTrains, val);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PANEL MAXIMIZE (desktop only)
+// ═══════════════════════════════════════════════════════════════
+function toggleMaximize(panelId) {
+    if (window.innerWidth <= 768) return; // no-op on mobile
+    const panels = ['panel-chat', 'panel-plan', 'panel-map'];
+    if (currentMaximizedPanel === panelId) {
+        panels.forEach(id => {
+            document.getElementById(id).classList.remove('maximized', 'minimized');
+            document.getElementById('icon-' + id).textContent = 'open_in_full';
+        });
+        currentMaximizedPanel = null;
+    } else {
+        currentMaximizedPanel = panelId;
+        panels.forEach(id => {
+            const el = document.getElementById(id);
+            if (id === panelId) {
+                el.classList.add('maximized');
+                el.classList.remove('minimized');
+                document.getElementById('icon-' + id).textContent = 'close_fullscreen';
+            } else {
+                el.classList.add('minimized');
+                el.classList.remove('maximized');
+            }
+        });
+    }
+    setTimeout(() => { if(mapObj) mapObj.invalidateSize(); }, 50);
+    setTimeout(() => { if(mapObj) mapObj.invalidateSize(); }, 350);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// JOURNEY PLANNER
+// ═══════════════════════════════════════════════════════════════
+let currentPreference = 'balanced';
+let currentPreferredLine = 'all';
+
+function getRailTimeString(date = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: RAIL_TIME_ZONE,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    }).formatToParts(date);
+    const hour = parts.find((part) => part.type === 'hour')?.value || '00';
+    const minute = parts.find((part) => part.type === 'minute')?.value || '00';
+    return `${hour}:${minute}`;
+}
+
+async function initPlanner() {
+    try {
+        const stationsRes = await fetch('/api/stations');
+        STATIONS_DATA = await stationsRes.json();
+        const fromSel = document.getElementById('plan-from');
+        const toSel = document.getElementById('plan-to');
+        // line selector buttons are initialized below
+        fromSel.innerHTML = '';
+        toSel.innerHTML = '';
+        STATIONS_DATA.forEach(s => {
+            const label = stationOptionLabel(s);
+            fromSel.add(new Option(label, s.name));
+            toSel.add(new Option(label, s.name));
+        });
+        fromSel.value = SETTINGS.defaultFrom || 'Borivali';
+        toSel.value = SETTINGS.defaultTo || 'Churchgate';
+        setPlannerLine(currentPreferredLine || 'all');
+    } catch(e) { console.error('Failed to load stations', e); }
+}
+
+document.getElementById('btn-swap').addEventListener('click', () => {
+    const f = document.getElementById('plan-from');
+    const t = document.getElementById('plan-to');
+    [f.value, t.value] = [t.value, f.value];
+});
+
+document.querySelectorAll('.pref-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+        document.querySelectorAll('.pref-btn').forEach(b => {
+            b.classList.remove('bg-rail-primary', 'text-white', 'active');
+            b.classList.add('text-rail-textMuted');
+        });
+        e.currentTarget.classList.add('bg-rail-primary', 'text-white', 'active');
+        e.currentTarget.classList.remove('text-rail-textMuted');
+        currentPreference = e.currentTarget.dataset.pref;
+    });
+});
+
+function setPlannerLine(line) {
+    currentPreferredLine = line || 'all';
+    document.querySelectorAll('.line-btn').forEach(btn => {
+        const active = btn.dataset.line === currentPreferredLine;
+        btn.classList.toggle('ring-2', active);
+        btn.classList.toggle('ring-white/50', active);
+        btn.classList.toggle('shadow-lg', active);
+        btn.classList.toggle('scale-[1.02]', active);
+        btn.style.opacity = active ? '1' : '0.68';
+    });
+}
+
+document.querySelectorAll('.line-btn').forEach(btn => {
+    btn.addEventListener('click', () => setPlannerLine(btn.dataset.line));
+});
+
+document.getElementById('btn-find').addEventListener('click', async () => {
+    const spinner = document.getElementById('find-spinner');
+    const resultsBox = document.getElementById('results-container');
+    const source = document.getElementById('plan-from').value;
+    const dest = document.getElementById('plan-to').value;
+    if (!source || !dest) return;
+    spinner.classList.remove('hidden');
+    try {
+        const timeStr = getRailTimeString();
+        const res = await fetch('/api/recommend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                source,
+                destination: dest,
+                preference: currentPreference,
+                preferred_line: currentPreferredLine,
+                time: timeStr,
+            })
+        });
+        const data = await res.json();
+        if (data.detail) { showToast(data.detail); return; }
+        resultsBox.classList.remove('hidden');
+        document.getElementById('res-eval').textContent = `${data.meta?.trains_evaluated || 0} trains`;
+        const best = data.best;
+        document.getElementById('best-time').textContent = best.departs;
+        const bestBits = [`~${best.travel_minutes} min journey`];
+        if (typeof best.wait_minutes === 'number') bestBits.push(`${best.wait_minutes} min away`);
+        if (best.departure_day_offset) bestBits.push('next day');
+        if (best.kind === 'transfer') bestBits.push(`${best.transfer_minutes || 0} min switch`);
+        document.getElementById('best-dur').textContent = bestBits.join(' · ');
+        document.getElementById('best-type').textContent = (best.kind === 'transfer' ? 'SWITCH' : (best.type || '').toUpperCase());
+        document.getElementById('best-crowd-txt').textContent = best.crowd + ' Crowd';
+        document.getElementById('best-crowd-txt').style.color = best.crowd_color;
+        document.getElementById('best-crowd-dot').style.backgroundColor = best.crowd_color;
+        document.getElementById('best-name').innerHTML = `<div class="text-xs uppercase tracking-[0.18em] text-rail-textMuted mb-1">${routeKindLabel(data)}</div><div class="text-sm text-white font-semibold">${formatRouteSummary(data)}</div>`;
+        const selectedLineLabel = currentPreferredLine === 'all' ? 'Auto line selection' : `${prettyLineName(currentPreferredLine)} line selected`;
+        document.getElementById('best-meta').textContent = best.kind === 'transfer' && best.legs?.length >= 2 ? `${selectedLineLabel} · Switch at ${best.transfer_station || 'interchange'} · ${prettyLineName(best.legs[0].line)} → ${prettyLineName(best.legs[1].line)}` : `${selectedLineLabel} · ${prettyLineName(best.line)} line · ${best.type || 'train'}`;
+        const altList = document.getElementById('alternatives-list');
+        altList.innerHTML = '';
+        (data.alternatives || []).forEach(alt => {
+            const altBits = [`~${alt.travel_minutes} min`];
+            if (typeof alt.wait_minutes === 'number') altBits.push(`${alt.wait_minutes} min away`);
+            if (alt.departure_day_offset) altBits.push('next day');
+            if (alt.kind === 'transfer') altBits.push(`${alt.transfer_minutes || 0} min switch`);
+            const altSummary = alt.kind === 'transfer' && alt.legs?.length >= 2 ? `${alt.legs[0].train_name} → switch → ${alt.legs[1].train_name}` : (alt.name || alt.train_name || 'Train');
+            altList.innerHTML += `
+            <div class="bg-rail-base/60 border border-rail-border hover:border-rail-border/80 rounded-xl p-3 flex justify-between transition-colors cursor-pointer">
+                <div>
+                    <span class="font-bold text-sm text-white">${alt.departs}</span>
+                    <span class="text-xs text-rail-textMuted block">${altBits.join(' · ')}</span>
+                    <div class="text-xs text-white/90 mt-1">${altSummary}</div>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                    <span class="text-[10px] font-semibold text-rail-success uppercase">${alt.kind === 'transfer' ? 'switch' : alt.type}</span>
+                    <div class="flex items-center gap-1">
+                        <div class="w-1.5 h-1.5 rounded-full" style="background:${alt.crowd_color}"></div>
+                        <span class="text-[10px]" style="color:${alt.crowd_color}">${alt.crowd}</span>
+                    </div>
+                </div>
+            </div>`;
+        });
+    } catch(e) { console.error('Recommendation error', e); }
+    finally { spinner.classList.add('hidden'); }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════════════════════════════
+function appendChatMessage(text, role, options = {}) {
+    const { shouldScroll = true } = options;
+    const hist = document.getElementById('chat-history');
+    const isUser = role === 'user';
+    const div = document.createElement('div');
+    let html = text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+        .replace(/\n/g, '<br>');
+    div.className = isUser
+        ? 'self-end flex flex-col items-end max-w-[85%]'
+        : 'self-start flex flex-col items-start max-w-[90%]';
+    div.innerHTML = `
+        <div class="text-[10px] uppercase tracking-[0.18em] ${isUser ? 'text-rail-primary/80 pr-1' : 'text-rail-textMuted pl-1'}">
+            ${isUser ? 'You' : 'RailMan AI'}
+        </div>
+        <div class="${isUser
+            ? 'bg-rail-primary text-white rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm shadow-md'
+            : 'bg-rail-base border border-rail-border text-rail-textMain rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed'}">
+            ${html}
+        </div>
+    `;
+    hist.appendChild(div);
+    syncChatChrome();
+    if (shouldScroll) scrollChatToBottom();
+    return div;
+}
+
+async function sendChatMessage(msg) {
+    if (CHAT_IS_BUSY) return;
+    ensureConversationId();
+    appendChatMessage(msg, 'user');
+    const requestContext = snapshotContext();
+    CHAT_CONTEXT.push({ role: 'user', content: msg });
+    const hist = document.getElementById('chat-history');
+    const loading = document.createElement('div');
+    loading.className = 'self-start flex flex-col items-start max-w-[90%]';
+    loading.innerHTML = `
+        <div class="text-[10px] uppercase tracking-[0.18em] text-rail-textMuted pl-1">RailMan AI</div>
+        <div class="bg-rail-base border border-rail-border text-rail-textMain rounded-2xl rounded-tl-sm px-4 py-3 text-sm">
+            <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-rail-textMuted/80 animate-pulse"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-rail-textMuted/80 animate-pulse" style="animation-delay:0.15s"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-rail-textMuted/80 animate-pulse" style="animation-delay:0.3s"></span>
+            </div>
+        </div>
+    `;
+    hist.appendChild(loading);
+    setChatBusy(true);
+    scrollChatToBottom();
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (AUTH_TOKEN) headers['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                message: msg,
+                session_id: SESSION_ID,
+                conversation_id: CONVERSATION_ID,
+                user_id: USER?.id || null,
+                context: requestContext,
+            })
+        });
+        const data = await res.json();
+        loading.remove();
+        if (res.status === 429) { appendChatMessage('⏱️ Too many messages. Please wait a moment.', 'assistant'); return; }
+        setConversationId(data.meta?.conversation_id || CONVERSATION_ID);
+        const reply = sanitizeAssistantText(data.response || data.explanation || 'Sorry, something went wrong.');
+        CHAT_CONTEXT.push({ role: 'assistant', content: reply });
+        appendChatMessage(reply, 'assistant');
+        if (data.meta?.crowd) updateCrowdBadge(data.meta.crowd, data.meta.crowd_color);
+    } catch(e) {
+        loading.remove();
+        CHAT_CONTEXT.pop();
+        appendChatMessage('Network error. Please check your connection.', 'assistant');
+    } finally {
+        setChatBusy(false);
+    }
+}
+
+document.getElementById('chat-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const val = input.value.trim();
+    if (val) { sendChatMessage(val); input.value = ''; }
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', e => sendChatMessage(e.currentTarget.textContent.trim()));
+});
+
+function updateCrowdBadge(label, color) {
+    document.getElementById('header-crowd').classList.remove('hidden');
+    document.getElementById('header-crowd-label').textContent = label + ' crowd';
+    document.getElementById('header-crowd-dot').style.backgroundColor = color;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════════════════════
+let mapBounds = null;
+let mapLineLayers = [];
+
+function initMap() {
+    if (mapObj) return;
+    mapObj = L.map('map', {
+        center: [19.2, 72.85], zoom: 11,
+        zoomControl: false,
+        attributionControl: false
+    });
+    L.control.zoom({ position: 'bottomright' }).addTo(mapObj);
+    tileLayer = L.tileLayer(MAP_TILES[SETTINGS.mapStyle] || MAP_TILES.dark, {
+        maxZoom: 19, subdomains: 'abcd'
+    }).addTo(mapObj);
+    loadMapStations();
+}
+
+async function loadMapStations() {
+    try {
+        const res = await fetch('/api/stations');
+        const data = await res.json();
+        stationMarkers.forEach(marker => mapObj?.removeLayer(marker));
+        mapLineLayers.forEach(layer => mapObj?.removeLayer(layer));
+        stationMarkers = [];
+        mapLineLayers = [];
+
+        const boundsPoints = [];
+        ['western', 'central', 'harbour'].forEach(line => {
+            const ordered = data.filter(s => (s.lines || []).includes(line)).sort((a, b) => (a.line_positions?.[line] ?? 999) - (b.line_positions?.[line] ?? 999));
+            const coords = ordered.map(s => [s.lat, s.lng]);
+            if (coords.length > 1) {
+                const layer = L.polyline(coords, { color: LINE_COLORS[line] || '#6366F1', weight: 4.5, opacity: 0.86, lineCap: 'round', lineJoin: 'round' }).addTo(mapObj);
+                mapLineLayers.push(layer);
+                coords.forEach(pt => boundsPoints.push(pt));
+            }
+        });
+
+        data.forEach(s => {
+            const primary = s.primary_line || (s.lines || [])[0] || 'western';
+            const isInterchange = (s.lines || []).length > 1 || s.interchange;
+            const dot = L.circleMarker([s.lat, s.lng], {
+                radius: isInterchange ? 6.5 : 4.5,
+                fillColor: LINE_COLORS[primary] || '#22D3EE',
+                color: isInterchange ? '#E2E8F0' : '#0B0D14',
+                weight: isInterchange ? 2 : 1.25,
+                fillOpacity: 1,
+            }).addTo(mapObj);
+            dot.bindPopup(makeStationPopup(s), { className: 'dark-popup', maxWidth: 240 });
+            stationMarkers.push(dot);
+            boundsPoints.push([s.lat, s.lng]);
+        });
+        mapBounds = L.latLngBounds(boundsPoints);
+        mapObj.fitBounds(mapBounds, { padding: [40, 40] });
+    } catch(e) { console.error('Map load error', e); }
+}
+
+function makeStationPopup(s) {
+    const lines = (s.lines || []).map(line => `<span class="station-chip" style="color:${LINE_COLORS[line] || '#CBD5E1'};border-color:${LINE_COLORS[line] || '#64748B'}55">${prettyLineName(line)}</span>`).join(' ');
+    return `<div style="padding:10px 14px;font-family:Inter,sans-serif">
+        <div style="color:#E2E8F0;font-weight:600;font-size:13px;margin-bottom:4px">${s.name}</div>
+        <div style="color:#94A3B8;font-size:11px;margin-bottom:8px">${s.zone} zone · Station ${s.index + 1}/28</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${lines}</div>
+    </div>`;
+}
+
+function mapFitBounds() {
+    if (mapObj && mapBounds) mapObj.fitBounds(mapBounds, { padding: [40, 40], animate: true });
+}
+
+const TYPE_COLORS = { fast: '#F97316', semi: '#A855F7', slow: '#22D3EE' };
+
+function makeTrainIcon(color, type, showLabel, name) {
+    const emoji = type === 'fast' ? '🚄' : type === 'semi' ? '🚆' : '🚃';
+    const label = showLabel ? `<div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(11,13,20,0.85);color:#E2E8F0;font-size:9px;padding:1px 5px;border-radius:4px;border:1px solid rgba(255,255,255,0.1)">${name?.substring(0,12) || ''}</div>` : '';
+    return L.divIcon({
+        html: `<div style="position:relative">
+            ${label}
+            <div class="train-marker-pulse" style="width:26px;height:26px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 10px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.25)">${emoji}</div>
+        </div>`,
+        iconSize: [26, 26], iconAnchor: [13, 13], className: ''
+    });
+}
+
+function makeTrainPopup(t) {
+    const crowdEmoji = { Low: '🟢', Medium: '🟡', High: '🟠', Extreme: '🔴' }[t.crowd] || '⚪';
+    return `<div style="padding:12px 14px;font-family:Inter,sans-serif;min-width:180px">
+        <div style="display:flex;align-items:center;justify-content:between;margin-bottom:8px">
+            <span style="color:#E2E8F0;font-weight:600;font-size:12px;flex:1">${t.display_name || t.name}</span>
+        </div>
+        <div style="color:#94A3B8;font-size:10px;margin-bottom:6px">${t.direction}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px">
+            <div><span style="color:#64748B">At: </span><span style="color:#E2E8F0">${t.current_station}</span></div>
+            <div><span style="color:#64748B">Next: </span><span style="color:#E2E8F0">${t.next_station}</span></div>
+            <div><span style="color:#64748B">Crowd: </span><span style="color:#E2E8F0">${crowdEmoji} ${t.crowd}</span></div>
+            <div><span style="color:#64748B">ETA: </span><span style="color:#E2E8F0">${t.eta_minutes || '—'} min</span></div>
+        </div>
+        <button onclick="openTrainModal('${t.id}')" style="margin-top:10px;width:100%;padding:5px;background:rgba(91,77,255,0.15);border:1px solid rgba(91,77,255,0.3);border-radius:8px;color:#818CF8;font-size:10px;cursor:pointer">
+            View Details →
+        </button>
+    </div>`;
+}
+
+async function pollTrains() {
+    try {
+        const res = await fetch('/api/live_trains');
+        const trains = await res.json();
+        const seen = new Set();
+        trains.forEach(t => {
+            seen.add(t.id);
+            lastTrainDataMap[t.id] = t;
+            const ll = [t.lat, t.lng];
+            const color = TYPE_COLORS[t.type] || '#6366F1';
+            if (trainMarkers[t.id]) {
+                if (SETTINGS.animate) {
+                    trainMarkers[t.id].setLatLng(ll);
+                } else {
+                    trainMarkers[t.id].setLatLng(ll);
+                }
+                trainMarkers[t.id].setIcon(makeTrainIcon(color, t.type, SETTINGS.showLabels, t.name));
+            } else {
+                const m = L.marker(ll, { icon: makeTrainIcon(color, t.type, SETTINGS.showLabels, t.name) }).addTo(mapObj);
+                m.bindPopup(makeTrainPopup(t), { className: 'dark-popup', maxWidth: 240 });
+                m.on('click', () => { lastTrainDataMap[t.id] = t; });
+                trainMarkers[t.id] = m;
+            }
+            // Update popup content when open
+            if (trainMarkers[t.id].isPopupOpen()) {
+                trainMarkers[t.id].setPopupContent(makeTrainPopup(t));
+            }
+        });
+        // Remove gone trains
+        Object.keys(trainMarkers).forEach(id => {
+            if (!seen.has(id)) { mapObj.removeLayer(trainMarkers[id]); delete trainMarkers[id]; delete lastTrainDataMap[id]; }
+        });
+        document.getElementById('live-count').textContent = `LIVE — ${trains.length} trains`;
+    } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TRAIN DETAIL MODAL
+// ═══════════════════════════════════════════════════════════════
+function openTrainModal(trainId) {
+    const t = lastTrainDataMap[trainId];
+    if (!t) return;
+    currentTrainData = t;
+    // Close any open popups
+    if (mapObj) mapObj.closePopup();
+    const modal = document.getElementById('modal-train');
+    modal.classList.remove('hidden');
+    const color = TYPE_COLORS[t.type] || '#6366F1';
+    document.getElementById('td-icon').style.background = color;
+    document.getElementById('td-name').textContent = t.display_name || t.name;
+    document.getElementById('td-id').textContent = `Train #${String(t.number || '').padStart(4,'0')} · ${t.departs} departure`;
+    document.getElementById('td-direction').textContent = t.direction;
+    document.getElementById('td-type').textContent = t.type;
+    document.getElementById('td-current').textContent = t.current_station;
+    document.getElementById('td-next').textContent = t.next_station;
+    document.getElementById('td-crowd').textContent = t.crowd;
+    document.getElementById('td-crowd').style.color = t.crowd_color;
+    document.getElementById('td-crowd-dot').style.backgroundColor = t.crowd_color;
+    document.getElementById('td-eta').textContent = `${t.eta_minutes || '—'} min`;
+    // Stops list
+    const stopsList = document.getElementById('td-stops-list');
+    stopsList.innerHTML = '';
+    const stops = t.stops || [];
+    stops.forEach((name, i) => {
+        const isPast = i < stops.indexOf(t.current_station);
+        const isCurrent = name === t.current_station;
+        const isNext = name === t.next_station;
+        stopsList.innerHTML += `<div class="flex items-center gap-2 py-1 px-2 rounded-lg ${isCurrent ? 'bg-rail-primary/20' : ''}">
+            <div class="w-2 h-2 rounded-full flex-shrink-0" style="background:${isCurrent ? '#5B4DFF' : isNext ? '#22D3EE' : isPast ? '#2A2D3A' : '#475569'}"></div>
+            <span class="text-xs ${isCurrent ? 'text-white font-semibold' : isNext ? 'text-rail-textMain' : 'text-rail-textMuted'}">${name}</span>
+            ${isCurrent ? '<span class="text-[10px] text-rail-primary ml-auto">← Here</span>' : ''}
+            ${isNext ? '<span class="text-[10px] text-[#22D3EE] ml-auto">Next</span>' : ''}
+        </div>`;
+    });
+}
+
+function closeTrainModal() {
+    document.getElementById('modal-train').classList.add('hidden');
+    currentTrainData = null;
+}
+
+function askAboutTrain() {
+    if (!currentTrainData) return;
+    const t = currentTrainData;
+    const msg = `Tell me about ${t.display_name || t.name} — it's currently at ${t.current_station} heading ${t.direction}, with ${t.crowd} crowd.`;
+    closeTrainModal();
+    sendChatMessage(msg);
+    // On mobile, scroll to chat panel
+    if (window.innerWidth <= 768) {
+        document.getElementById('panel-chat').scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOAST NOTIFICATION
+// ═══════════════════════════════════════════════════════════════
+function showToast(msg) {
+    const el = document.createElement('div');
+    el.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-rail-panel border border-rail-border text-white text-xs px-4 py-2.5 rounded-full shadow-xl z-[9999] transition-all';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 2500);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MOBILE: close modals on outside click
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('modal-auth').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-auth')) closeAuth();
+});
+document.getElementById('modal-settings').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-settings')) closeSettings();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeAuth(); closeSettings(); closeTrainModal();
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+    initSession();
+    setChatBusy(false);
+    loadChatHistory();
+    initPlanner();
+    setPlannerLine(currentPreferredLine);
+    initMap();
+    // Start polling
+    setTimeout(pollTrains, 600);
+    pollIntervalId = setInterval(pollTrains, SETTINGS.pollInterval);
+    // Apply saved settings
+    if (SETTINGS.defaultFrom) setTimeout(() => {
+        const f = document.getElementById('plan-from');
+        if (f && STATIONS_DATA.length > 0) f.value = SETTINGS.defaultFrom;
+    }, 1000);
+});
+</script>
+</body>
+</html>

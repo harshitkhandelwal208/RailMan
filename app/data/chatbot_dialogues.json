@@ -1,0 +1,591 @@
+[
+  {
+    "id": "dlg-fastest-peak",
+    "user": "Fastest option from Borivali to Churchgate at 8:45 am",
+    "assistant": "Next departure after 08:45 is surfaced first, then the assistant compares fast and semi-fast options with wait time, travel time, and crowd level.",
+    "tags": [
+      "route",
+      "peak",
+      "fastest",
+      "borivali",
+      "churchgate"
+    ]
+  },
+  {
+    "id": "dlg-comfort-followup",
+    "user": "What about the least crowded one instead?",
+    "assistant": "Reuse the most recent source, destination, and time from memory, then return the next valid departure that best matches comfort within that time window.",
+    "tags": [
+      "memory",
+      "follow_up",
+      "least_crowded"
+    ]
+  },
+  {
+    "id": "dlg-after-midnight",
+    "user": "Any train from Andheri to Dadar at 11:55 pm?",
+    "assistant": "If the last same-day departure is gone, return the first train after midnight and label it clearly as next day.",
+    "tags": [
+      "midnight",
+      "next_day",
+      "andheri",
+      "dadar"
+    ]
+  },
+  {
+    "id": "dlg-unsupported-line",
+    "user": "How do I go from Thane to Dadar?",
+    "assistant": "Explain that the current bot only covers Mumbai Western suburban data and cannot reliably answer Central line trips yet.",
+    "tags": [
+      "scope",
+      "unsupported_route"
+    ]
+  },
+  {
+    "id": "dlg-station-note",
+    "user": "Is Andheri crowded right now?",
+    "assistant": "Answer with the current crowd band, mention that Andheri is a busy interchange, and keep the answer short.",
+    "tags": [
+      "crowd",
+      "station_note",
+      "andheri"
+    ]
+  },
+  {
+    "id": "dlg-abbreviation",
+    "user": "Need a train from BVI to ADH around 6:10 pm",
+    "assistant": "Resolve station abbreviations through the alias dataset before computing the next train.",
+    "tags": [
+      "alias",
+      "abbreviation",
+      "borivali",
+      "andheri"
+    ]
+  },
+  {
+    "id": "dlg-missing-slot",
+    "user": "Best train from Bandra right now",
+    "assistant": "Ask a brief clarifying question for the destination instead of guessing.",
+    "tags": [
+      "clarify",
+      "missing_slot",
+      "bandra"
+    ]
+  },
+  {
+    "id": "dlg-general-hours",
+    "user": "When do trains start in the morning?",
+    "assistant": "Answer from the offline FAQ dataset, noting that exact first trains vary by station and train type.",
+    "tags": [
+      "faq",
+      "operating_hours",
+      "first_train"
+    ]
+  },
+  {
+    "id": "dlg-platform-safety",
+    "user": "Any travel safety tips for evening rush?",
+    "assistant": "Give concise platform safety and crowd awareness guidance grounded in the local knowledge base.",
+    "tags": [
+      "faq",
+      "safety",
+      "peak"
+    ]
+  },
+  {
+    "id": "dlg-memory-route-reuse",
+    "user": "How long will it take?",
+    "assistant": "If the previous turn already established source and destination, answer using that route instead of asking again.",
+    "tags": [
+      "memory",
+      "follow_up",
+      "travel_time"
+    ]
+  },
+  {
+    "id": "dlg-virar-fast-slow-diff",
+    "user": "What's the difference between a fast and slow train from Churchgate to Virar?",
+    "assistant": "Explain that a fast train takes roughly 70-80 minutes, stops only at major stations like Dadar, Bandra, Andheri, Borivali; a slow train stops at all 28 stations and takes about 110 minutes.",
+    "tags": [
+      "fast",
+      "slow",
+      "churchgate",
+      "virar",
+      "travel_time",
+      "train_type"
+    ]
+  },
+  {
+    "id": "dlg-semi-fast-explain",
+    "user": "What is a semi-fast train?",
+    "assistant": "Describe semi-fast trains as a middle option that skips selected minor stations to save some time compared to a slow train, but still serves more stops than a fast.",
+    "tags": [
+      "semi_fast",
+      "train_type",
+      "explanation"
+    ]
+  },
+  {
+    "id": "dlg-peak-timing",
+    "user": "When is the Western Line busiest?",
+    "assistant": "State that peak hours are roughly 8:00–10:30 AM southbound toward Churchgate, and 6:00–8:30 PM northbound toward Borivali and Virar on weekdays. Weekends are significantly less crowded.",
+    "tags": [
+      "crowd",
+      "peak",
+      "rush_hour",
+      "weekday"
+    ]
+  },
+  {
+    "id": "dlg-crowd-now",
+    "user": "How crowded are trains right now?",
+    "assistant": "Report the current crowd band from the live predictor with the matching emoji (🟢/🟡/🟠/🔴) and advise on the best time if currently in peak.",
+    "tags": [
+      "crowd",
+      "live",
+      "real_time"
+    ]
+  },
+  {
+    "id": "dlg-dadar-interchange",
+    "user": "I need to switch from Western to Central line at Dadar. Any advice?",
+    "assistant": "Confirm Dadar is a valid interchange. Advise walking to the Central railway side, which takes about 5–10 minutes. Warn that Dadar is extremely crowded during peak hours.",
+    "tags": [
+      "dadar",
+      "interchange",
+      "central_line",
+      "transfer",
+      "safety"
+    ]
+  },
+  {
+    "id": "dlg-ladies-compartment",
+    "user": "Are there ladies-only compartments?",
+    "assistant": "Confirm that Mumbai suburban trains have reserved ladies compartments, usually in fixed positions on the train. Advise that peak hours have heavy rush even in those coaches.",
+    "tags": [
+      "ladies",
+      "compartment",
+      "reservation",
+      "faq"
+    ]
+  },
+  {
+    "id": "dlg-first-class",
+    "user": "Do Western Line trains have first-class coaches?",
+    "assistant": "Confirm that Western Line locals have first-class coaches. They cost more but are significantly less crowded. Advise they require a separate first-class pass or ticket.",
+    "tags": [
+      "first_class",
+      "ticket",
+      "comfort",
+      "faq"
+    ]
+  },
+  {
+    "id": "dlg-platform-number",
+    "user": "Which platform does the Virar fast leave from at Borivali?",
+    "assistant": "Note that platform assignments can vary and are best confirmed at the station display boards; the bot does not have live platform data.",
+    "tags": [
+      "platform",
+      "borivali",
+      "virar",
+      "limitation"
+    ]
+  },
+  {
+    "id": "dlg-virar-to-churchgate-morning",
+    "user": "Fastest train from Virar to Churchgate at 7:30 am?",
+    "assistant": "Find the next fast or semi-fast departure after 07:30 from Virar toward Churchgate, report departure time, expected arrival, travel minutes, and current crowd level.",
+    "tags": [
+      "virar",
+      "churchgate",
+      "fast",
+      "morning",
+      "peak",
+      "route"
+    ]
+  },
+  {
+    "id": "dlg-andheri-to-bandra-crowded",
+    "user": "Is the 6:15 PM train from Andheri to Bandra usually crowded?",
+    "assistant": "Confirm that the 6:15 PM window falls inside evening peak. The crowd level is typically High or Extreme. Suggest the next semi-fast if the user wants slightly less crowding.",
+    "tags": [
+      "andheri",
+      "bandra",
+      "peak",
+      "evening",
+      "crowd"
+    ]
+  },
+  {
+    "id": "dlg-multiple-route-options",
+    "user": "Give me three train options from Malad to Grant Road around 9 AM",
+    "assistant": "List three options with different types (fast/semi-fast/slow), showing departure time, expected travel time, and crowd level for each.",
+    "tags": [
+      "route",
+      "malad",
+      "grant_road",
+      "peak",
+      "alternatives"
+    ]
+  },
+  {
+    "id": "dlg-travel-time-question",
+    "user": "How long does Kandivali to Churchgate take?",
+    "assistant": "Provide approximate travel times: ~35–40 min by fast train, ~55–65 min by slow train. Add that journey time can vary slightly depending on stops and signals.",
+    "tags": [
+      "travel_time",
+      "kandivali",
+      "churchgate",
+      "route"
+    ]
+  },
+  {
+    "id": "dlg-last-train-virar",
+    "user": "What is the last train from Churchgate to Virar?",
+    "assistant": "Report the final departures toward Virar from Churchgate, noting that service ends around midnight and advising the user to verify at the station for last-minute schedule changes.",
+    "tags": [
+      "last_train",
+      "churchgate",
+      "virar",
+      "midnight",
+      "edge_case"
+    ]
+  },
+  {
+    "id": "dlg-before-first-train",
+    "user": "I need to reach Dadar from Borivali at 4:30 AM. Is there a train?",
+    "assistant": "Explain that suburban service usually hasn't started at 4:30 AM. Return the earliest available departure, typically around 5 AM, and label it clearly.",
+    "tags": [
+      "first_train",
+      "early_morning",
+      "borivali",
+      "dadar",
+      "edge_case"
+    ]
+  },
+  {
+    "id": "dlg-same-station",
+    "user": "I want a train from Andheri to Andheri",
+    "assistant": "Politely explain that source and destination are the same station, so no journey is needed, and ask for a different destination.",
+    "tags": [
+      "same_station",
+      "validation",
+      "andheri",
+      "edge_case"
+    ]
+  },
+  {
+    "id": "dlg-non-western-station",
+    "user": "How do I get from Kurla to CST?",
+    "assistant": "Explain that RailMan now covers Western, Central, and Harbour line travel, so it can help with those stations instead of treating them as unsupported.",
+    "tags": [
+      "scope",
+      "multi_line",
+      "central_line",
+      "harbour_line"
+    ]
+  },
+  {
+    "id": "dlg-mira-road-to-bandra",
+    "user": "What train options do I have from Mira Road to Bandra in the morning?",
+    "assistant": "List available fast and semi-fast trains from Mira Road toward Bandra with departure times, travel duration, and crowd level forecast.",
+    "tags": [
+      "mira_road",
+      "bandra",
+      "morning",
+      "route",
+      "alternatives"
+    ]
+  },
+  {
+    "id": "dlg-weekend-crowd",
+    "user": "Is the 10 AM train on Sunday from Andheri to Churchgate crowded?",
+    "assistant": "Report that weekend crowds are generally low to medium even at 10 AM. Describe the crowd as Green or Yellow and recommend it as a comfortable journey.",
+    "tags": [
+      "weekend",
+      "crowd",
+      "andheri",
+      "churchgate",
+      "sunday"
+    ]
+  },
+  {
+    "id": "dlg-pass-vs-ticket",
+    "user": "Should I buy a monthly pass or a daily ticket for my commute?",
+    "assistant": "Give general guidance: a monthly pass is cost-effective for daily commuters, while a daily ticket suits occasional travelers. Advise using the official railway website or station for exact pricing.",
+    "tags": [
+      "ticket",
+      "pass",
+      "monthly_pass",
+      "fare",
+      "faq"
+    ]
+  },
+  {
+    "id": "dlg-wheelchair-accessibility",
+    "user": "Is Bandra station wheelchair accessible?",
+    "assistant": "Note that facilities vary and some major stations have ramps or lifts, but confirm locally as infrastructure differs. Advise contacting Railway Enquiry (139) for the latest accessibility information.",
+    "tags": [
+      "accessibility",
+      "wheelchair",
+      "bandra",
+      "facilities"
+    ]
+  },
+  {
+    "id": "dlg-luggage-rules",
+    "user": "How much luggage can I carry on the train?",
+    "assistant": "Explain that there's an informal permissible limit for suburban trains. Large luggage and bicycles may not be allowed during peak hours. Official rules should be confirmed with railway authorities.",
+    "tags": [
+      "luggage",
+      "rules",
+      "faq",
+      "policy"
+    ]
+  },
+  {
+    "id": "dlg-train-delay",
+    "user": "Is the 8:15 AM from Borivali running on time?",
+    "assistant": "Explain that RailMan does not have live delay data from the railway network, only scheduled timetable data. For real-time delays, advise checking National Train Enquiry System (NTES) or the station display boards.",
+    "tags": [
+      "delay",
+      "live_data",
+      "limitation",
+      "borivali",
+      "real_time"
+    ]
+  },
+  {
+    "id": "dlg-crowd-followup",
+    "user": "Will the alternative train be less crowded?",
+    "assistant": "Use the conversation context to retrieve the alternative train that was mentioned earlier and compare its crowd score to the best option. Give a direct answer with crowd emojis.",
+    "tags": [
+      "memory",
+      "follow_up",
+      "crowd",
+      "alternative"
+    ]
+  },
+  {
+    "id": "dlg-offpeak-recommendation",
+    "user": "I'm flexible on timing. When is the best time to travel from Dadar to Virar?",
+    "assistant": "Recommend off-peak windows: 10:30 AM–5:30 PM on weekdays when crowd levels are Low to Medium. Advise avoiding 8–10 AM and 6–8:30 PM.",
+    "tags": [
+      "off_peak",
+      "flexible",
+      "dadar",
+      "virar",
+      "recommendation"
+    ]
+  },
+  {
+    "id": "dlg-hindi-user",
+    "user": "Borivali se Churchgate ka next train kab hai?",
+    "assistant": "Respond in English but acknowledge the Hindi query. Return the next train details from Borivali to Churchgate just as for an English query.",
+    "tags": [
+      "hindi",
+      "multilingual",
+      "borivali",
+      "churchgate",
+      "route"
+    ]
+  },
+  {
+    "id": "dlg-marathi-user",
+    "user": "Andheri te Dadar la pudhacha train kiti vaajata yenar?",
+    "assistant": "Acknowledge the Marathi query and respond in English with the next available train from Andheri to Dadar.",
+    "tags": [
+      "marathi",
+      "multilingual",
+      "andheri",
+      "dadar",
+      "route"
+    ]
+  },
+  {
+    "id": "dlg-app-greeting",
+    "user": "Hi",
+    "assistant": "Greet the user warmly as RailMan AI, briefly explain capabilities (train search, crowd levels, journey times), and prompt them with example questions.",
+    "tags": [
+      "greeting",
+      "onboarding",
+      "help"
+    ]
+  },
+  {
+    "id": "dlg-app-help",
+    "user": "What can you do?",
+    "assistant": "List capabilities: find next trains between any two Western Line stations, predict crowd levels, estimate journey times, provide safety tips, and answer FAQs about the Mumbai Western suburban network.",
+    "tags": [
+      "help",
+      "capabilities",
+      "faq",
+      "onboarding"
+    ]
+  },
+  {
+    "id": "dlg-context-chain-route-then-crowd",
+    "user": "Is that route busy at that time?",
+    "assistant": "Use the most recently stored route entities (source, destination, time) to answer the crowd question without asking the user to repeat the route.",
+    "tags": [
+      "memory",
+      "follow_up",
+      "crowd",
+      "context_chain"
+    ]
+  },
+  {
+    "id": "dlg-context-chain-time-change",
+    "user": "What if I leave 30 minutes later?",
+    "assistant": "Adjust the query time by 30 minutes from the previously mentioned time, rerun the recommendation, and present the new results alongside a comparison.",
+    "tags": [
+      "memory",
+      "follow_up",
+      "time_adjust",
+      "context_chain"
+    ]
+  },
+  {
+    "id": "dlg-private-clear-memory",
+    "user": "Please forget our conversation",
+    "assistant": "Confirm the conversation memory will be cleared and instruct the user to click the 'Clear History' button or say 'clear memory' to wipe stored data from MongoDB.",
+    "tags": [
+      "privacy",
+      "memory",
+      "clear_history",
+      "gdpr"
+    ]
+  },
+  {
+    "id": "dlg-feedback-prompt",
+    "user": "That was very helpful!",
+    "assistant": "Thank the user and optionally ask if they would like to rate the experience to help improve the service.",
+    "tags": [
+      "feedback",
+      "positive",
+      "engagement"
+    ]
+  },
+  {
+    "id": "dlg-negative-experience",
+    "user": "That answer was wrong",
+    "assistant": "Apologize sincerely, acknowledge the limitation, and ask the user to specify what was incorrect. Offer to retry the query.",
+    "tags": [
+      "feedback",
+      "negative",
+      "error_recovery"
+    ]
+  },
+  {
+    "id": "dlg-prabhadevi-rename",
+    "user": "Is Elphinstone Road the same as Prabhadevi?",
+    "assistant": "Confirm that Prabhadevi station was formerly known as Elphinstone Road and they are the same station. Both names are supported in the alias dataset.",
+    "tags": [
+      "prabhadevi",
+      "elphinstone_road",
+      "alias",
+      "station_note",
+      "rename"
+    ]
+  },
+  {
+    "id": "dlg-multiple-follow-up-turns",
+    "user": "Also, how long from Bandra to that destination?",
+    "assistant": "Resolve 'that destination' from the previous conversation turn, then compute and return the travel time from Bandra to the resolved destination.",
+    "tags": [
+      "memory",
+      "multi_turn",
+      "travel_time",
+      "bandra"
+    ]
+  },
+  {
+    "id": "dlg-offline-mode-info",
+    "user": "Do you work without internet?",
+    "assistant": "Confirm that RailMan can operate fully offline using a local model, bundled timetable, and local MongoDB. API keys enable cloud LLM responses but are not required.",
+    "tags": [
+      "offline",
+      "local_model",
+      "faq",
+      "capabilities"
+    ]
+  },
+  {
+    "id": "dlg-vasai-road-slow",
+    "user": "Does the slow train from Churchgate stop at Vasai Road?",
+    "assistant": "Confirm that slow trains stop at all 28 stations including Vasai Road. Note the longer total journey time compared to a fast train.",
+    "tags": [
+      "vasai_road",
+      "slow_train",
+      "stops",
+      "churchgate"
+    ]
+  },
+  {
+    "id": "dlg-nallasopara-crowd",
+    "user": "Is Nallasopara station crowded in the evenings?",
+    "assistant": "Confirm Nallasopara is a residential suburb with high outbound commuter demand in the morning and high returning commuter demand in the evening. Expect crowded northbound platforms around 7–9 PM.",
+    "tags": [
+      "nallasopara",
+      "crowd",
+      "evening",
+      "station_note"
+    ]
+  },
+  {
+    "id": "dlg-ac-local",
+    "user": "Are there AC local trains on the Western Line?",
+    "assistant": "Confirm that AC local trains operate on the Western Line, offering air-conditioned comfort. Note that they run on selected timings and require a separate higher-priced ticket or AC pass.",
+    "tags": [
+      "ac_local",
+      "air_conditioned",
+      "comfort",
+      "faq",
+      "train_type"
+    ]
+  },
+  {
+    "id": "dlg-multi-line-scope",
+    "user": "Can you plan trips on Central and Harbour lines too?",
+    "assistant": "Yes — RailMan now covers Western, Central, and Harbour line trips, and it can chain trains together when a transfer is needed.",
+    "tags": [
+      "central_line",
+      "harbour_line",
+      "multi_line",
+      "scope"
+    ]
+  },
+  {
+    "id": "dlg-western-to-central-transfer",
+    "user": "How do I go from Andheri to Kurla?",
+    "assistant": "Take a Western Line train to Dadar, then switch to the Central Line and continue to Kurla. RailMan will now choose the best connection automatically.",
+    "tags": [
+      "western_line",
+      "central_line",
+      "dadar",
+      "transfer"
+    ]
+  },
+  {
+    "id": "dlg-central-to-harbour-transfer",
+    "user": "How do I go from Dadar to Vashi?",
+    "assistant": "Use a Central Line train from Dadar toward Kurla, then transfer to a Harbour Line service at Kurla for Vashi.",
+    "tags": [
+      "central_line",
+      "harbour_line",
+      "kurla",
+      "transfer"
+    ]
+  },
+  {
+    "id": "dlg-transfer-suggest",
+    "user": "Should I take a transfer if it is faster?",
+    "assistant": "Yes — if the route engine finds a quicker or more comfortable connection, it should recommend the switch and show both train legs clearly.",
+    "tags": [
+      "transfer",
+      "switch",
+      "fastest",
+      "comfort"
+    ]
+  }
+]

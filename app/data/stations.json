@@ -1,0 +1,1270 @@
+[
+  {
+    "id": "CG",
+    "name": "Churchgate",
+    "lat": 18.9322,
+    "lng": 72.8264,
+    "zone": "south",
+    "index": 0,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 0
+    },
+    "primary_line": "western",
+    "display_order": 0,
+    "interchange": false
+  },
+  {
+    "id": "ML",
+    "name": "Marine Lines",
+    "lat": 18.9437,
+    "lng": 72.8238,
+    "zone": "south",
+    "index": 1,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 1
+    },
+    "primary_line": "western",
+    "display_order": 1,
+    "interchange": false
+  },
+  {
+    "id": "CR",
+    "name": "Charni Road",
+    "lat": 18.9522,
+    "lng": 72.8194,
+    "zone": "south",
+    "index": 2,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 2
+    },
+    "primary_line": "western",
+    "display_order": 2,
+    "interchange": false
+  },
+  {
+    "id": "GR",
+    "name": "Grant Road",
+    "lat": 18.9639,
+    "lng": 72.8146,
+    "zone": "south",
+    "index": 3,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 3
+    },
+    "primary_line": "western",
+    "display_order": 3,
+    "interchange": false
+  },
+  {
+    "id": "MC",
+    "name": "Mumbai Central",
+    "lat": 18.969,
+    "lng": 72.8198,
+    "zone": "south",
+    "index": 4,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 4
+    },
+    "primary_line": "western",
+    "display_order": 4,
+    "interchange": false
+  },
+  {
+    "id": "MX",
+    "name": "Mahalaxmi",
+    "lat": 18.9826,
+    "lng": 72.8183,
+    "zone": "central",
+    "index": 5,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 5
+    },
+    "primary_line": "western",
+    "display_order": 5,
+    "interchange": false
+  },
+  {
+    "id": "LP",
+    "name": "Lower Parel",
+    "lat": 18.9934,
+    "lng": 72.832,
+    "zone": "central",
+    "index": 6,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 6
+    },
+    "primary_line": "western",
+    "display_order": 6,
+    "interchange": false
+  },
+  {
+    "id": "EP",
+    "name": "Elphinstone Road",
+    "lat": 19.0,
+    "lng": 72.838,
+    "zone": "central",
+    "index": 7,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 7
+    },
+    "primary_line": "western",
+    "display_order": 7,
+    "interchange": false
+  },
+  {
+    "id": "DR",
+    "name": "Dadar",
+    "lat": 19.0178,
+    "lng": 72.8478,
+    "zone": "central",
+    "index": 8,
+    "lines": [
+      "western",
+      "central"
+    ],
+    "line_positions": {
+      "western": 8,
+      "central": 7
+    },
+    "primary_line": "western",
+    "display_order": 8,
+    "interchange": true
+  },
+  {
+    "id": "MR",
+    "name": "Matunga Road",
+    "lat": 19.027,
+    "lng": 72.8472,
+    "zone": "central",
+    "index": 9,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 9
+    },
+    "primary_line": "western",
+    "display_order": 9,
+    "interchange": false
+  },
+  {
+    "id": "MH",
+    "name": "Mahim",
+    "lat": 19.0406,
+    "lng": 72.843,
+    "zone": "central",
+    "index": 10,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 10
+    },
+    "primary_line": "western",
+    "display_order": 10,
+    "interchange": false
+  },
+  {
+    "id": "BD",
+    "name": "Bandra",
+    "lat": 19.0541,
+    "lng": 72.84,
+    "zone": "central",
+    "index": 11,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 11
+    },
+    "primary_line": "western",
+    "display_order": 11,
+    "interchange": false
+  },
+  {
+    "id": "KR",
+    "name": "Khar Road",
+    "lat": 19.063,
+    "lng": 72.8374,
+    "zone": "north",
+    "index": 12,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 12
+    },
+    "primary_line": "western",
+    "display_order": 12,
+    "interchange": false
+  },
+  {
+    "id": "SC",
+    "name": "Santacruz",
+    "lat": 19.081,
+    "lng": 72.837,
+    "zone": "north",
+    "index": 13,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 13
+    },
+    "primary_line": "western",
+    "display_order": 13,
+    "interchange": false
+  },
+  {
+    "id": "VP",
+    "name": "Vile Parle",
+    "lat": 19.099,
+    "lng": 72.8469,
+    "zone": "north",
+    "index": 14,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 14
+    },
+    "primary_line": "western",
+    "display_order": 14,
+    "interchange": false
+  },
+  {
+    "id": "AN",
+    "name": "Andheri",
+    "lat": 19.1197,
+    "lng": 72.8468,
+    "zone": "north",
+    "index": 15,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 15
+    },
+    "primary_line": "western",
+    "display_order": 15,
+    "interchange": false
+  },
+  {
+    "id": "JG",
+    "name": "Jogeshwari",
+    "lat": 19.1352,
+    "lng": 72.8498,
+    "zone": "north",
+    "index": 16,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 16
+    },
+    "primary_line": "western",
+    "display_order": 16,
+    "interchange": false
+  },
+  {
+    "id": "GN",
+    "name": "Goregaon",
+    "lat": 19.1543,
+    "lng": 72.8496,
+    "zone": "north",
+    "index": 17,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 17
+    },
+    "primary_line": "western",
+    "display_order": 17,
+    "interchange": false
+  },
+  {
+    "id": "MA",
+    "name": "Malad",
+    "lat": 19.1868,
+    "lng": 72.8483,
+    "zone": "north",
+    "index": 18,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 18
+    },
+    "primary_line": "western",
+    "display_order": 18,
+    "interchange": false
+  },
+  {
+    "id": "KD",
+    "name": "Kandivali",
+    "lat": 19.2053,
+    "lng": 72.8522,
+    "zone": "north",
+    "index": 19,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 19
+    },
+    "primary_line": "western",
+    "display_order": 19,
+    "interchange": false
+  },
+  {
+    "id": "BV",
+    "name": "Borivali",
+    "lat": 19.2288,
+    "lng": 72.8567,
+    "zone": "north",
+    "index": 20,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 20
+    },
+    "primary_line": "western",
+    "display_order": 20,
+    "interchange": false
+  },
+  {
+    "id": "DH",
+    "name": "Dahisar",
+    "lat": 19.2519,
+    "lng": 72.8584,
+    "zone": "far-north",
+    "index": 21,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 21
+    },
+    "primary_line": "western",
+    "display_order": 21,
+    "interchange": false
+  },
+  {
+    "id": "MRD",
+    "name": "Mira Road",
+    "lat": 19.2867,
+    "lng": 72.8701,
+    "zone": "far-north",
+    "index": 22,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 22
+    },
+    "primary_line": "western",
+    "display_order": 22,
+    "interchange": false
+  },
+  {
+    "id": "BHD",
+    "name": "Bhayandar",
+    "lat": 19.3049,
+    "lng": 72.8557,
+    "zone": "far-north",
+    "index": 23,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 23
+    },
+    "primary_line": "western",
+    "display_order": 23,
+    "interchange": false
+  },
+  {
+    "id": "NG",
+    "name": "Naigaon",
+    "lat": 19.362,
+    "lng": 72.8509,
+    "zone": "far-north",
+    "index": 24,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 24
+    },
+    "primary_line": "western",
+    "display_order": 24,
+    "interchange": false
+  },
+  {
+    "id": "VR",
+    "name": "Vasai Road",
+    "lat": 19.3905,
+    "lng": 72.8336,
+    "zone": "far-north",
+    "index": 25,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 25
+    },
+    "primary_line": "western",
+    "display_order": 25,
+    "interchange": false
+  },
+  {
+    "id": "NL",
+    "name": "Nalasopara",
+    "lat": 19.4194,
+    "lng": 72.7983,
+    "zone": "far-north",
+    "index": 26,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 26
+    },
+    "primary_line": "western",
+    "display_order": 26,
+    "interchange": false
+  },
+  {
+    "id": "VI",
+    "name": "Virar",
+    "lat": 19.4662,
+    "lng": 72.8069,
+    "zone": "far-north",
+    "index": 27,
+    "lines": [
+      "western"
+    ],
+    "line_positions": {
+      "western": 27
+    },
+    "primary_line": "western",
+    "display_order": 27,
+    "interchange": false
+  },
+  {
+    "id": "CSMT",
+    "name": "Chhatrapati Shivaji Maharaj Terminus",
+    "lat": 18.9402,
+    "lng": 72.8355,
+    "zone": "south",
+    "lines": [
+      "central",
+      "harbour"
+    ],
+    "line_positions": {
+      "central": 0,
+      "harbour": 0
+    },
+    "primary_line": "central",
+    "index": 0,
+    "display_order": 100,
+    "interchange": true
+  },
+  {
+    "id": "MSJ",
+    "name": "Masjid",
+    "lat": 18.95,
+    "lng": 72.8346,
+    "zone": "south",
+    "lines": [
+      "central",
+      "harbour"
+    ],
+    "line_positions": {
+      "central": 1,
+      "harbour": 1
+    },
+    "primary_line": "central",
+    "index": 1,
+    "display_order": 101,
+    "interchange": true
+  },
+  {
+    "id": "SND",
+    "name": "Sandhurst Road",
+    "lat": 18.9578,
+    "lng": 72.8335,
+    "zone": "south",
+    "lines": [
+      "central",
+      "harbour"
+    ],
+    "line_positions": {
+      "central": 2,
+      "harbour": 2
+    },
+    "primary_line": "central",
+    "index": 2,
+    "display_order": 102,
+    "interchange": true
+  },
+  {
+    "id": "BYC",
+    "name": "Byculla",
+    "lat": 18.976,
+    "lng": 72.831,
+    "zone": "south",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 3
+    },
+    "primary_line": "central",
+    "index": 3,
+    "display_order": 103,
+    "interchange": false
+  },
+  {
+    "id": "DRD",
+    "name": "Dockyard Road",
+    "lat": 18.9647,
+    "lng": 72.8352,
+    "zone": "south",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 3
+    },
+    "primary_line": "harbour",
+    "index": 3,
+    "display_order": 103,
+    "interchange": false
+  },
+  {
+    "id": "CHP",
+    "name": "Chinchpokli",
+    "lat": 18.9874,
+    "lng": 72.836,
+    "zone": "south",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 4
+    },
+    "primary_line": "central",
+    "index": 4,
+    "display_order": 104,
+    "interchange": false
+  },
+  {
+    "id": "RRD",
+    "name": "Reay Road",
+    "lat": 18.974,
+    "lng": 72.8386,
+    "zone": "south",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 4
+    },
+    "primary_line": "harbour",
+    "index": 4,
+    "display_order": 104,
+    "interchange": false
+  },
+  {
+    "id": "CGR",
+    "name": "Cotton Green",
+    "lat": 18.9816,
+    "lng": 72.8442,
+    "zone": "south",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 5
+    },
+    "primary_line": "harbour",
+    "index": 5,
+    "display_order": 105,
+    "interchange": false
+  },
+  {
+    "id": "CRR",
+    "name": "Currey Road",
+    "lat": 18.9952,
+    "lng": 72.842,
+    "zone": "central",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 5
+    },
+    "primary_line": "central",
+    "index": 5,
+    "display_order": 105,
+    "interchange": false
+  },
+  {
+    "id": "PRL",
+    "name": "Parel",
+    "lat": 19.0021,
+    "lng": 72.8434,
+    "zone": "central",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 6
+    },
+    "primary_line": "central",
+    "index": 6,
+    "display_order": 106,
+    "interchange": false
+  },
+  {
+    "id": "SEW",
+    "name": "Sewri",
+    "lat": 18.9863,
+    "lng": 72.8532,
+    "zone": "south",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 6
+    },
+    "primary_line": "harbour",
+    "index": 6,
+    "display_order": 106,
+    "interchange": false
+  },
+  {
+    "id": "WDL",
+    "name": "Wadala Road",
+    "lat": 19.015,
+    "lng": 72.866,
+    "zone": "central",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 7
+    },
+    "primary_line": "harbour",
+    "index": 7,
+    "display_order": 107,
+    "interchange": false
+  },
+  {
+    "id": "GTB",
+    "name": "GTB Nagar",
+    "lat": 19.0167,
+    "lng": 72.8614,
+    "zone": "central",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 8
+    },
+    "primary_line": "harbour",
+    "index": 8,
+    "display_order": 108,
+    "interchange": false
+  },
+  {
+    "id": "MTG",
+    "name": "Matunga",
+    "lat": 19.0265,
+    "lng": 72.8538,
+    "zone": "central",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 8
+    },
+    "primary_line": "central",
+    "index": 8,
+    "display_order": 108,
+    "interchange": false
+  },
+  {
+    "id": "CHN",
+    "name": "Chunabhatti",
+    "lat": 19.0532,
+    "lng": 72.8854,
+    "zone": "central",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 9
+    },
+    "primary_line": "harbour",
+    "index": 9,
+    "display_order": 109,
+    "interchange": false
+  },
+  {
+    "id": "SION",
+    "name": "Sion",
+    "lat": 19.0397,
+    "lng": 72.8603,
+    "zone": "central",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 9
+    },
+    "primary_line": "central",
+    "index": 9,
+    "display_order": 109,
+    "interchange": false
+  },
+  {
+    "id": "KRL",
+    "name": "Kurla",
+    "lat": 19.067,
+    "lng": 72.879,
+    "zone": "central",
+    "lines": [
+      "central",
+      "harbour"
+    ],
+    "line_positions": {
+      "central": 10,
+      "harbour": 10
+    },
+    "primary_line": "central",
+    "index": 10,
+    "display_order": 110,
+    "interchange": true
+  },
+  {
+    "id": "TIL",
+    "name": "Tilak Nagar",
+    "lat": 19.0601,
+    "lng": 72.9014,
+    "zone": "central",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 11
+    },
+    "primary_line": "harbour",
+    "index": 11,
+    "display_order": 111,
+    "interchange": false
+  },
+  {
+    "id": "VDY",
+    "name": "Vidyavihar",
+    "lat": 19.0818,
+    "lng": 72.8885,
+    "zone": "north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 11
+    },
+    "primary_line": "central",
+    "index": 11,
+    "display_order": 111,
+    "interchange": false
+  },
+  {
+    "id": "CHE",
+    "name": "Chembur",
+    "lat": 19.0541,
+    "lng": 72.9084,
+    "zone": "central",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 12
+    },
+    "primary_line": "harbour",
+    "index": 12,
+    "display_order": 112,
+    "interchange": false
+  },
+  {
+    "id": "GHT",
+    "name": "Ghatkopar",
+    "lat": 19.0895,
+    "lng": 72.908,
+    "zone": "north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 12
+    },
+    "primary_line": "central",
+    "index": 12,
+    "display_order": 112,
+    "interchange": false
+  },
+  {
+    "id": "GOV",
+    "name": "Govandi",
+    "lat": 19.045,
+    "lng": 72.9235,
+    "zone": "east",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 13
+    },
+    "primary_line": "harbour",
+    "index": 13,
+    "display_order": 113,
+    "interchange": false
+  },
+  {
+    "id": "VKH",
+    "name": "Vikhroli",
+    "lat": 19.1033,
+    "lng": 72.933,
+    "zone": "north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 13
+    },
+    "primary_line": "central",
+    "index": 13,
+    "display_order": 113,
+    "interchange": false
+  },
+  {
+    "id": "KJR",
+    "name": "Kanjurmarg",
+    "lat": 19.1161,
+    "lng": 72.9425,
+    "zone": "north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 14
+    },
+    "primary_line": "central",
+    "index": 14,
+    "display_order": 114,
+    "interchange": false
+  },
+  {
+    "id": "MNK",
+    "name": "Mankhurd",
+    "lat": 19.038,
+    "lng": 72.943,
+    "zone": "east",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 14
+    },
+    "primary_line": "harbour",
+    "index": 14,
+    "display_order": 114,
+    "interchange": false
+  },
+  {
+    "id": "BND",
+    "name": "Bhandup",
+    "lat": 19.1467,
+    "lng": 72.9505,
+    "zone": "north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 15
+    },
+    "primary_line": "central",
+    "index": 15,
+    "display_order": 115,
+    "interchange": false
+  },
+  {
+    "id": "VSH",
+    "name": "Vashi",
+    "lat": 19.0758,
+    "lng": 72.9986,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 15
+    },
+    "primary_line": "harbour",
+    "index": 15,
+    "display_order": 115,
+    "interchange": false
+  },
+  {
+    "id": "NAH",
+    "name": "Nahur",
+    "lat": 19.1576,
+    "lng": 72.958,
+    "zone": "north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 16
+    },
+    "primary_line": "central",
+    "index": 16,
+    "display_order": 116,
+    "interchange": false
+  },
+  {
+    "id": "SNP",
+    "name": "Sanpada",
+    "lat": 19.0635,
+    "lng": 73.016,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 16
+    },
+    "primary_line": "harbour",
+    "index": 16,
+    "display_order": 116,
+    "interchange": false
+  },
+  {
+    "id": "JUI",
+    "name": "Juinagar",
+    "lat": 19.044,
+    "lng": 73.023,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 17
+    },
+    "primary_line": "harbour",
+    "index": 17,
+    "display_order": 117,
+    "interchange": false
+  },
+  {
+    "id": "MLD",
+    "name": "Mulund",
+    "lat": 19.1708,
+    "lng": 72.9557,
+    "zone": "north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 17
+    },
+    "primary_line": "central",
+    "index": 17,
+    "display_order": 117,
+    "interchange": false
+  },
+  {
+    "id": "NER",
+    "name": "Nerul",
+    "lat": 19.033,
+    "lng": 73.0198,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 18
+    },
+    "primary_line": "harbour",
+    "index": 18,
+    "display_order": 118,
+    "interchange": false
+  },
+  {
+    "id": "THN",
+    "name": "Thane",
+    "lat": 19.186,
+    "lng": 72.97,
+    "zone": "far-north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 18
+    },
+    "primary_line": "central",
+    "index": 18,
+    "display_order": 118,
+    "interchange": false
+  },
+  {
+    "id": "KLV",
+    "name": "Kalwa",
+    "lat": 19.2277,
+    "lng": 73.0036,
+    "zone": "far-north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 19
+    },
+    "primary_line": "central",
+    "index": 19,
+    "display_order": 119,
+    "interchange": false
+  },
+  {
+    "id": "SDV",
+    "name": "Seawoods-Darave",
+    "lat": 19.0212,
+    "lng": 73.019,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 19
+    },
+    "primary_line": "harbour",
+    "index": 19,
+    "display_order": 119,
+    "interchange": false
+  },
+  {
+    "id": "BDP",
+    "name": "CBD Belapur",
+    "lat": 19.0205,
+    "lng": 73.041,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 20
+    },
+    "primary_line": "harbour",
+    "index": 20,
+    "display_order": 120,
+    "interchange": false
+  },
+  {
+    "id": "MNB",
+    "name": "Mumbra",
+    "lat": 19.2563,
+    "lng": 73.0169,
+    "zone": "far-north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 20
+    },
+    "primary_line": "central",
+    "index": 20,
+    "display_order": 120,
+    "interchange": false
+  },
+  {
+    "id": "DVA",
+    "name": "Diva",
+    "lat": 19.2882,
+    "lng": 73.0531,
+    "zone": "far-north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 21
+    },
+    "primary_line": "central",
+    "index": 21,
+    "display_order": 121,
+    "interchange": false
+  },
+  {
+    "id": "KHR",
+    "name": "Kharghar",
+    "lat": 19.0453,
+    "lng": 73.0628,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 21
+    },
+    "primary_line": "harbour",
+    "index": 21,
+    "display_order": 121,
+    "interchange": false
+  },
+  {
+    "id": "KOP",
+    "name": "Kopar",
+    "lat": 19.3238,
+    "lng": 73.0808,
+    "zone": "far-north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 22
+    },
+    "primary_line": "central",
+    "index": 22,
+    "display_order": 122,
+    "interchange": false
+  },
+  {
+    "id": "MSV",
+    "name": "Mansarovar",
+    "lat": 19.075,
+    "lng": 73.0795,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 22
+    },
+    "primary_line": "harbour",
+    "index": 22,
+    "display_order": 122,
+    "interchange": false
+  },
+  {
+    "id": "DOM",
+    "name": "Dombivli",
+    "lat": 19.2167,
+    "lng": 73.09,
+    "zone": "far-north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 23
+    },
+    "primary_line": "central",
+    "index": 23,
+    "display_order": 123,
+    "interchange": false
+  },
+  {
+    "id": "KHD",
+    "name": "Khandeshwar",
+    "lat": 19.102,
+    "lng": 73.0878,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 23
+    },
+    "primary_line": "harbour",
+    "index": 23,
+    "display_order": 123,
+    "interchange": false
+  },
+  {
+    "id": "PNV",
+    "name": "Panvel",
+    "lat": 18.9897,
+    "lng": 73.1175,
+    "zone": "navi-mumbai",
+    "lines": [
+      "harbour"
+    ],
+    "line_positions": {
+      "harbour": 24
+    },
+    "primary_line": "harbour",
+    "index": 24,
+    "display_order": 124,
+    "interchange": false
+  },
+  {
+    "id": "TKL",
+    "name": "Thakurli",
+    "lat": 19.2285,
+    "lng": 73.119,
+    "zone": "far-north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 24
+    },
+    "primary_line": "central",
+    "index": 24,
+    "display_order": 124,
+    "interchange": false
+  },
+  {
+    "id": "KLY",
+    "name": "Kalyan Junction",
+    "lat": 19.2427,
+    "lng": 73.1247,
+    "zone": "far-north",
+    "lines": [
+      "central"
+    ],
+    "line_positions": {
+      "central": 25
+    },
+    "primary_line": "central",
+    "index": 25,
+    "display_order": 125,
+    "interchange": false
+  }
+]
