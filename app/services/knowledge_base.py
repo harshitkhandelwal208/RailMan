@@ -31,7 +31,7 @@ _STOPWORDS = {
     "you", "your",
 }
 
-# Kind weights — boost relevance of more authoritative document types
+                                                                     
 _KIND_BOOST = {
     "faq":          2,
     "station_note": 1,
@@ -165,7 +165,7 @@ def _score_document(query_tokens: List[str], query: str, document: dict) -> floa
 
     score: float = 0.0
 
-    # Token-level scoring weighted by IDF
+                                         
     for token in query_tokens:
         w = idf.get(token, 1.0)
         if token in haystack_tokens:
@@ -173,18 +173,18 @@ def _score_document(query_tokens: List[str], query: str, document: dict) -> floa
         elif token in haystack_raw:
             score += 1.0 * w
 
-    # Exact phrase bonus
+                        
     lowered_query = query.lower().strip()
     if lowered_query and lowered_query in haystack_raw:
         score += 8.0
 
-    # Tag match bonus (higher weight — tags are deliberately curated signals)
+                                                                             
     for tag in document.get("tags", []):
         tag_lower = tag.lower().replace("_", " ")
         if tag_lower in lowered_query or tag.lower() in lowered_query:
             score += 4.0
 
-    # Document-kind boost
+                         
     score += _KIND_BOOST.get(document.get("kind", ""), 0)
 
     return score
@@ -238,7 +238,7 @@ def format_knowledge_context(documents: List[dict], max_items: int = 4) -> str:
         title = doc["title"]
         body  = doc["body"]
         kind  = doc["kind"]
-        # Truncate long bodies to keep the prompt lean
+                                                      
         if len(body) > 200:
             body = body[:197] + "…"
         lines.append(f"- [{kind}] {title}: {body}")

@@ -33,7 +33,7 @@ async def _rate_limit_chat(request: Request):
     except HTTPException:
         raise
     except Exception:
-        pass  # Fail open if DB unavailable
+        pass                               
 
 
 @router.post("/chat")
@@ -106,7 +106,7 @@ async def get_history(
             limit=limit,
         )
         if not include_metadata:
-            # Strip internal fields for a clean public response
+                                                               
             messages = [
                 {
                     "role":      m.get("role", m.get("sender_type", "user")),

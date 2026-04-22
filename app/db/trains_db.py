@@ -40,7 +40,7 @@ def get_db():
         return _db
     if not _MOTOR_OK:
         return None
-    # Prefer dedicated trains URI, fall back to shared URI
+                                                          
     uri = resolve_mongo_uri("MONGODB_TRAINS_URI")
     if not uri:
         return None
@@ -58,9 +58,9 @@ def get_db():
         return None
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Startup                                                                       #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def init_db():
     db = get_db()
     if db is None:
@@ -123,11 +123,11 @@ async def _seed_static_data(db):
     )
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Stations                                                                      #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def get_stations() -> List[dict]:
-    # The bundled JSON is the source of truth; MongoDB is only a cache/sync target.
+                                                                                   
     items = _load_json("stations.json")
     if items:
         return items
@@ -142,11 +142,11 @@ async def get_stations() -> List[dict]:
         return []
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Trains                                                                        #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def get_all_trains() -> List[dict]:
-    # The bundled JSON is the source of truth; MongoDB is only a cache/sync target.
+                                                                                   
     items = _load_json("trains.json")
     if items:
         return items
@@ -161,9 +161,9 @@ async def get_all_trains() -> List[dict]:
         return []
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Live positions (TTL 60s)                                                      #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def upsert_live_position(train_id: str, position: dict):
     db = get_db()
     if db is None:
@@ -199,9 +199,9 @@ async def get_active_trains_count() -> int:
         return 0
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# JSON fallback                                                                 #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 def _load_json(filename: str) -> List[dict]:
     try:
         with open(_DATA / filename) as f:

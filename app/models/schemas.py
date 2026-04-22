@@ -17,7 +17,7 @@ class ChatRequest(BaseModel):
 class RecommendRequest(BaseModel):
     source: str
     destination: str
-    time: Optional[str] = None          # "HH:MM" format
+    time: Optional[str] = None                          
     preference: Literal["fastest", "least_crowded", "balanced"] = "balanced"
     preferred_line: Optional[Literal["western", "central", "harbour", "all"]] = "all"
     train_id: Optional[str] = None
@@ -60,7 +60,7 @@ class RecommendationOut(BaseModel):
     crowd_forecast: dict
 
 
-# Auth models
+             
 class RegisterRequest(BaseModel):
     email: EmailStr
     name: str = Field(..., min_length=1, max_length=100)

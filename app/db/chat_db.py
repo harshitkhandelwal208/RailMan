@@ -31,7 +31,7 @@ except ImportError:
 _client = None
 _db     = None
 
-MAX_MEMORY_TURNS = 20   # per session, keep last N turns in MongoDB memory
+MAX_MEMORY_TURNS = 20                                                     
 MEMORY_SCAN_LIMIT = 200
 _MEMORY_STOPWORDS = {
     "a",
@@ -62,7 +62,7 @@ def get_db():
         return _db
     if not _MOTOR_OK:
         return None
-    # Prefer dedicated chat URI, fall back to shared URI
+                                                        
     uri = resolve_mongo_uri("MONGODB_CHAT_URI")
     if not uri:
         return None
@@ -80,9 +80,9 @@ def get_db():
         return None
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Startup                                                                       #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def init_db():
     db = get_db()
     if db is None:
@@ -112,7 +112,7 @@ async def _ensure_indexes(db):
         await db.feedback.create_index("session_id")
         await db.feedback.create_index([("rating", ASCENDING)])
 
-        # Chat memory indexes
+                             
         await db.chat_memory.create_index("session_id")
         await db.chat_memory.create_index("conversation_id")
         await db.chat_memory.create_index("user_id")
@@ -121,7 +121,7 @@ async def _ensure_indexes(db):
         await _ensure_chat_memory_message_id_index(db)
         await db.chat_memory.create_index([("session_id", ASCENDING), ("timestamp", DESCENDING)])
         await db.chat_memory.create_index([("conversation_id", ASCENDING), ("timestamp", DESCENDING)])
-        await db.chat_memory.create_index("timestamp", expireAfterSeconds=86400 * 30)  # 30-day TTL
+        await db.chat_memory.create_index("timestamp", expireAfterSeconds=86400 * 30)              
         try:
             await db.chat_memory.create_index(
                 [("content", "text"), ("context_tags", "text")],
@@ -130,13 +130,13 @@ async def _ensure_indexes(db):
         except Exception as e:
             logger.debug(f"chat_memory text index skipped: {e}")
 
-        # Users / Auth indexes
+                              
         await db.users.create_index("email", unique=True)
         await db.users.create_index("google_id", sparse=True)
         await db.users.create_index("github_id", sparse=True)
         await db.users.create_index("created_at")
 
-        # Rate limiting index
+                             
         await db.rate_limits.create_index("key", unique=True)
         await db.rate_limits.create_index("reset_at", expireAfterSeconds=0)
 
@@ -241,9 +241,9 @@ async def _ensure_chat_memory_message_id_index(db):
     )
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Chat Memory (persistent per session)                                          #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 def _memory_scope(session_id: str, conversation_id: Optional[str] = None) -> dict:
     return {"conversation_id": conversation_id} if conversation_id else {"session_id": session_id}
 
@@ -441,9 +441,9 @@ async def clear_chat_memory(session_id: str, conversation_id: Optional[str] = No
         logger.debug(f"clear_chat_memory: {e}")
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Auth — Users                                                                  #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def get_user_by_email(email: str) -> Optional[dict]:
     db = get_db()
     if db is None:
@@ -507,14 +507,14 @@ async def update_user_login(email: str):
         pass
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Rate Limiting                                                                 #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def check_rate_limit(key: str, max_requests: int = 30, window_seconds: int = 60) -> bool:
     """Returns True if request is allowed, False if rate limited."""
     db = get_db()
     if db is None:
-        return True  # Allow if no DB
+        return True                  
     try:
         now = datetime.utcnow()
         reset_at = now + timedelta(seconds=window_seconds)
@@ -532,12 +532,12 @@ async def check_rate_limit(key: str, max_requests: int = 30, window_seconds: int
         )
         return True
     except Exception:
-        return True  # Fail open
+        return True             
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Logs                                                                          #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def log_query(session_id: str, message: str, response: dict):
     db = get_db()
     if db is None:
@@ -566,9 +566,9 @@ async def get_recent_queries(limit: int = 50) -> List[dict]:
         return []
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Recommendations                                                               #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def log_recommendation(session_id: str, req: dict, rec: dict):
     db = get_db()
     if db is None:
@@ -603,9 +603,9 @@ async def get_popular_routes(limit: int = 10) -> List[dict]:
         return []
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Feedback                                                                      #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def save_feedback(session_id: str, rating: int, comment: Optional[str]):
     db = get_db()
     if db is None:
@@ -635,9 +635,9 @@ async def get_feedback_stats() -> dict:
         return {"avg_rating": None, "total": 0}
 
 
-# ─────────────────────────────────────────────────────────────────────────── #
-# Total counts for analytics                                                    #
-# ─────────────────────────────────────────────────────────────────────────── #
+                                                                               
+                                                                                 
+                                                                               
 async def get_counts() -> dict:
     db = get_db()
     if db is None:

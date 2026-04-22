@@ -60,7 +60,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── API routes ────────────────────────────────────────────────────────────── #
+                                                                                
 app.include_router(chat.router)
 app.include_router(trains.router)
 app.include_router(stations.router)
@@ -79,7 +79,7 @@ async def health():
     from app.services.llm_runtime   import get_runtime_status
     from app.services.knowledge_base import get_knowledge_stats
 
-    # ── DB connectivity ──────────────────────────────────────────────────────
+                                                                               
     trains_ok = False
     chat_ok   = False
 
@@ -107,10 +107,10 @@ async def health():
     else:
         chat_ping_ms = None
 
-    # ── LLM runtime ──────────────────────────────────────────────────────────
+                                                                               
     runtime = get_runtime_status()
 
-    # ── Knowledge base ───────────────────────────────────────────────────────
+                                                                               
     kb = get_knowledge_stats()
 
     return {
@@ -164,8 +164,8 @@ async def invalidate_knowledge_cache():
 
 
 
-# ── Serve web frontend (catch-all) ────────────────────────────────────────── #
-# Must come LAST so it doesn't swallow the routes above.
+                                                                                
+                                                        
 _EXCLUDED = ("api/", "docs", "health", "ping", "openapi")
 
 @app.get("/")

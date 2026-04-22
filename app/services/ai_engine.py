@@ -34,10 +34,10 @@ def pretty_line_name(line: Optional[str]) -> str:
 
 logger = logging.getLogger(__name__)
 
-# Fallback in-memory sessions (used when MongoDB unavailable)
+                                                             
 _sessions_fallback: dict = {}
-MAX_HISTORY       = 20   # recent-turn window sent to LLM
-SEMANTIC_SNIPPETS = 3    # extra semantically-relevant turns injected from DB
+MAX_HISTORY       = 20                                   
+SEMANTIC_SNIPPETS = 3                                                        
 
 SYSTEM_PROMPT = """You are RailMan AI — a premium Mumbai suburban railway assistant.
 Personality: knowledgeable, warm, concise, emojis used tastefully.
@@ -75,7 +75,7 @@ Current context: {time_context}
 
 _CROWD_EMOJI = {"Low": "🟢", "Medium": "🟡", "High": "🟠", "Extreme": "🔴"}
 
-# ── Knowledge base injection ─────────────────────────────────────────────────
+                                                                               
 
 def _build_knowledge_snippet(message: str) -> str:
     docs = search_knowledge(message, limit=3)
@@ -88,7 +88,7 @@ def _fallback_key(session_id: str, conversation_id: Optional[str] = None) -> str
     return conversation_id or session_id
 
 
-# ── Short-circuit responses (no LLM needed) ──────────────────────────────────
+                                                                               
 
 def _greeting_response() -> str:
     now = get_service_now()
@@ -175,7 +175,7 @@ def _network_context() -> str:
         return ''
 
 
-# ── MongoDB memory helpers ────────────────────────────────────────────────────
+                                                                                
 
 async def _get_history_from_db(
     session_id: str,
@@ -237,7 +237,7 @@ async def _save_turn_to_db(
         )
     except Exception as exc:
         logger.debug("DB memory save failed: %s", exc)
-    # Always maintain the in-memory fallback
+                                            
     fallback_bucket_key = _fallback_key(session_id, conversation_id)
     bucket = _sessions_fallback.setdefault(fallback_bucket_key, [])
     bucket.append({"role": role, "content": content, "entities": entities or {}})
@@ -323,7 +323,7 @@ def _format_route_reply(message: str, rec: dict, entities: dict) -> str:
     return "\n".join(lines)
 
 
-# ── Primary entry point ───────────────────────────────────────────────────────
+                                                                                
 
 async def handle_query(
     message: str,
@@ -337,7 +337,7 @@ async def handle_query(
     cid = conversation_id or sid
     context = context or []
 
-    # 1. Short-circuit for simple greetings / help (skip LLM entirely)
+                                                                      
     if is_greeting(message):
         response = _greeting_response()
         await _save_turn_to_db(sid, "user", message, conversation_id=cid, user_id=user_id)
@@ -357,21 +357,21 @@ async def handle_query(
             "recommendation": None,
         }
 
-    # 2. Load recent conversation history from MongoDB
+                                                      
     history = await _get_history_from_db(sid, cid)
     if context and not history:
         history = list(context[-MAX_HISTORY:])
 
-    # 3. Extract entities from current message
+                                              
     raw_entities = extract_entities(message)
 
-    # 4. Resolve follow-up context (inherit entities from history if needed)
+                                                                            
     entities = resolve_entities(message, raw_entities, history)
 
-    # 5. Fetch semantically relevant older turns
+                                                
     semantic_turns = await _get_semantic_memory(sid, message, cid)
 
-    # 6. Append current user message to working history
+                                                       
     history.append({"role": "user", "content": message})
 
     if entities.get("source") and entities.get("destination"):
@@ -464,7 +464,7 @@ async def handle_query(
             "recommendation": None,
         }
 
-    # 7. Build system prompt with time + offline knowledge + semantic context
+                                                                             
     knowledge_ctx  = _build_knowledge_snippet(message)
     semantic_ctx   = _format_semantic_context(semantic_turns)
     combined_ctx   = "\n\n".join(filter(None, [knowledge_ctx, semantic_ctx]))
@@ -474,9 +474,9 @@ async def handle_query(
         knowledge_context=combined_ctx,
     )
 
-    # 8. Generate: local GGUF → Anthropic → OpenAI → None
-    # Wrapped in asyncio.to_thread so synchronous model inference never
-    # blocks the FastAPI event loop (critical for local GGUF models).
+                                                         
+                                                                       
+                                                                     
     ai_response: Optional[str] = None
     result = await asyncio.to_thread(
         generate_with_providers, system, history[-MAX_HISTORY:]
@@ -488,11 +488,11 @@ async def handle_query(
     else:
         provider_used = "rule_based"
 
-    # 9. Rule-based fallback (always works offline, uses resolved entities)
+                                                                           
     if not ai_response:
         ai_response = _rule_based(message, entities)
 
-    # 10. Persist both turns to MongoDB with entity metadata
+                                                            
     await _save_turn_to_db(
         sid,
         "user",
@@ -509,7 +509,7 @@ async def handle_query(
         user_id=user_id,
     )
 
-    # 11. Structured recommendation for frontend recommendation card
+                                                                    
     recommendation = None
     if entities.get("source") and entities.get("destination"):
         try:
@@ -576,5 +576,5 @@ def _rule_based(message: str, entities: dict) -> str:
     )
 
 
-# Lazy import to avoid circular at module load
+                                              
 from app.services.recommendation_engine import recommend

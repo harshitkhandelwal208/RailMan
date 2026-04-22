@@ -11,7 +11,7 @@ All functions are re-exported from the appropriate split database module:
 For new code, import directly from trains_db or chat_db.
 """
 
-# ── Trains DB ──────────────────────────────────────────────────────────────
+                                                                             
 from app.db.trains_db import (
     get_db          as _get_trains_db,
     init_db         as _init_trains_db,
@@ -22,7 +22,7 @@ from app.db.trains_db import (
     get_active_trains_count,
 )
 
-# ── Chat DB ────────────────────────────────────────────────────────────────
+                                                                             
 from app.db.chat_db import (
     get_db          as _get_chat_db,
     init_db         as _init_chat_db,
@@ -49,10 +49,10 @@ logger = logging.getLogger(__name__)
 import app.db.trains_db as _tdb
 import app.db.chat_db   as _cdb
 
-_client = None  # kept for backward compat; actual clients live in sub-modules
+_client = None                                                                
 
 
-# ── Combined init / shutdown ───────────────────────────────────────────────
+                                                                             
 async def init_db():
     """Initialise both databases."""
     await _init_trains_db()
@@ -69,13 +69,13 @@ async def close_db():
         logger.info("Chat DB client closed")
 
 
-# ── Combined get_db (returns trains db for backward compat) ───────────────
+                                                                            
 def get_db():
     """Backward-compat: returns the trains DB handle."""
     return _get_trains_db()
 
 
-# ── Combined analytics helper ─────────────────────────────────────────────
+                                                                            
 async def get_analytics() -> dict:
     popular   = await get_popular_routes()
     feedback  = await get_feedback_stats()

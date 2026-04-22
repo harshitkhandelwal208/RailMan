@@ -326,8 +326,8 @@ def _transfer_route(trains, source, destination, time_str, preference, reference
     line_filter = _normalize_line_filter(preferred_line)
     paths = available_line_paths(station_lines(start_station), station_lines(end_station))
 
-    # Same-line train switching (e.g. slow to fast at Bandra) is modeled as
-    # a two-leg transfer on the same line.
+                                                                           
+                                          
     paths.extend(_same_line_route_path(start_station, end_station, line_filter))
 
     if line_filter:
@@ -495,7 +495,7 @@ def _recommend_with_trains(trains, source, destination, time_str=None, preferenc
 
 
 async def recommend(source: str, destination: str, time_str: Optional[str] = None, preference: str = "balanced", preferred_line: Optional[str] = None, train_id: Optional[str] = None) -> dict:
-    # Bundled JSON is the source of truth; DB is only a fallback if the files are unavailable.
+                                                                                              
     trains = load_trains()
     if not trains:
         try:

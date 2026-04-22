@@ -22,10 +22,10 @@ security = HTTPBearer(auto_error=False)
 
 SECRET_KEY = os.getenv("JWT_SECRET", "railman-secret-change-in-production")
 ALGORITHM  = "HS256"
-TOKEN_EXPIRE_HOURS = 24 * 7  # 1 week
+TOKEN_EXPIRE_HOURS = 24 * 7          
 
 
-# ── JWT helpers ───────────────────────────────────────────────────────────── #
+                                                                                
 def _create_token(user_id: str, email: str) -> str:
     try:
         from jose import jwt
@@ -33,7 +33,7 @@ def _create_token(user_id: str, email: str) -> str:
         payload = {"sub": user_id, "email": email, "exp": expire, "iat": datetime.utcnow()}
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     except ImportError:
-        # Fallback: use a simple uuid token stored in memory (dev only)
+                                                                       
         token = str(uuid.uuid4())
         _token_store[token] = {"user_id": user_id, "email": email}
         return token
@@ -46,11 +46,11 @@ def _verify_token(token: str) -> Optional[dict]:
         return payload
     except Exception:
         pass
-    # Fallback store
+                    
     return _token_store.get(token)
 
 
-_token_store: dict = {}  # dev fallback only
+_token_store: dict = {}                     
 
 
 def _hash_password(password: str) -> str:
@@ -58,7 +58,7 @@ def _hash_password(password: str) -> str:
         import bcrypt
         return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     except ImportError:
-        # Fallback: simple hash (not secure — prod must have bcrypt)
+                                                                    
         import hashlib
         return hashlib.sha256((password + SECRET_KEY).encode()).hexdigest()
 
@@ -82,7 +82,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     return payload
 
 
-# ── Rate limit for auth endpoints ────────────────────────────────────────── #
+                                                                               
 async def _auth_rate_limit(request: Request):
     ip = request.client.host if request.client else "unknown"
     try:
@@ -93,10 +93,10 @@ async def _auth_rate_limit(request: Request):
     except HTTPException:
         raise
     except Exception:
-        pass  # If rate limit DB fails, allow the request
+        pass                                             
 
 
-# ── Endpoints ─────────────────────────────────────────────────────────────── #
+                                                                                
 @router.post("/register", response_model=TokenOut)
 async def register(req: RegisterRequest, request: Request):
     await _auth_rate_limit(request)
@@ -114,7 +114,7 @@ async def register(req: RegisterRequest, request: Request):
         provider="email",
     )
     if not user:
-        # Fallback: create in-memory user for dev
+                                                 
         user = {
             "id": str(uuid.uuid4()),
             "email": req.email,

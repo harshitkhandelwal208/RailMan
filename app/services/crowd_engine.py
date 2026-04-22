@@ -14,18 +14,18 @@ from typing import Tuple
 from app.services.time_utils import get_service_now
 
 
-# Peak window definitions (hour ranges, inclusive)
+                                                  
 MORNING_PEAK = (7, 11)
 EVENING_PEAK = (17, 21)
 SHOULDER_AM  = (6, 7)
 SHOULDER_PM  = (21, 22)
 
-# Crowd score 0-100 mapping to labels
+                                     
 CROWD_LABELS = [
-    (0,  25,  "Low",     "#22C55E"),   # green
-    (25, 55,  "Medium",  "#EAB308"),   # yellow
-    (55, 80,  "High",    "#F97316"),   # orange
-    (80, 100, "Extreme", "#EF4444"),   # red
+    (0,  25,  "Low",     "#22C55E"),          
+    (25, 55,  "Medium",  "#EAB308"),           
+    (55, 80,  "High",    "#F97316"),           
+    (80, 100, "Extreme", "#EF4444"),        
 ]
 
 ZONE_MULTIPLIER = {
@@ -48,12 +48,12 @@ def _base_score(hour: int, minute: int = 0) -> float:
     t = hour + minute / 60.0
 
     if MORNING_PEAK[0] <= hour <= MORNING_PEAK[1]:
-        # Gaussian peak centred at 9:00
+                                       
         centre = 9.0
         peak = 95.0
         width = 1.5
     elif EVENING_PEAK[0] <= hour <= EVENING_PEAK[1]:
-        # Gaussian peak centred at 19:00
+                                        
         centre = 19.0
         peak = 90.0
         width = 1.8
@@ -66,10 +66,10 @@ def _base_score(hour: int, minute: int = 0) -> float:
         peak = 40.0
         width = 0.8
     else:
-        # Off-peak: gentle sine-based variation for realism
+                                                           
         centre = t
         peak = 20.0 + 10 * abs((t % 12) - 6) / 6
-        width = 999  # effectively flat
+        width = 999                    
 
     import math
     score = peak * math.exp(-((t - centre) ** 2) / (2 * width ** 2))
@@ -90,7 +90,7 @@ def predict_crowd(
     score *= ZONE_MULTIPLIER.get(zone, 1.0)
     score *= TYPE_MULTIPLIER.get(train_type, 1.0)
     if is_weekend:
-        score *= 0.65   # ~35% less crowded on weekends
+        score *= 0.65                                  
 
     score = int(min(100, max(0, score)))
 

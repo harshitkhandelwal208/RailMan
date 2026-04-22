@@ -14,7 +14,7 @@ or "How crowded is that route?"), this module:
 import re
 from typing import List, Optional
 
-# ── Signal patterns ──────────────────────────────────────────────────────────
+                                                                               
 
 _FOLLOWUP_PATTERNS = [
     r"\b(what about|how about|and the|is it|are they|will it|is that|that one|the other|alternatively)\b",
@@ -32,14 +32,14 @@ _FOLLOWUP_PATTERNS = [
 
 _FOLLOWUP_RE = re.compile("|".join(_FOLLOWUP_PATTERNS), re.IGNORECASE)
 
-# ── Time delta ───────────────────────────────────────────────────────────────
+                                                                               
 
 _TIME_DELTA_RE = re.compile(
     r"(\d+)\s*(min(?:ute)?s?|h(?:our)?s?)\s*(later|earlier|before|after|sooner)",
     re.IGNORECASE,
 )
 
-# ── Preference override keywords ─────────────────────────────────────────────
+                                                                               
 
 _PREF_FASTEST     = {"fastest", "fast", "quickest", "quick", "express", "speedy"}
 _PREF_COMFORT     = {"least crowded", "comfortable", "empty", "quiet", "uncrowded",
@@ -125,28 +125,28 @@ def resolve_entities(
     unchanged (no side-effects on the original dict).
     """
     if not _is_followup(message, current_entities):
-        # Not a follow-up — only apply preference override if useful
+                                                                    
         pref = _override_preference(message, current_entities.get("preference", "balanced"))
         return {**current_entities, "preference": pref}
 
     merged: dict = dict(current_entities)
 
-    # Walk history backward to find the most recent complete entity set
+                                                                       
     for turn in reversed(history):
         turn_entities = _entities_from_history_turn(turn)
         for key in ("source", "destination", "time", "preference", "preferred_line", "train_id"):
             if not merged.get(key) and turn_entities.get(key):
                 merged[key] = turn_entities[key]
-        # Stop as soon as we have source + destination
+                                                      
         if merged.get("source") and merged.get("destination"):
             break
 
-    # Apply time delta ("30 minutes later" → adjust the inherited time)
+                                                                       
     delta = _extract_time_delta_minutes(message)
     if delta is not None and merged.get("time"):
         merged["time"] = _apply_time_delta(merged["time"], delta)
 
-    # Let explicit preference words in this message override the inherited one
+                                                                              
     merged["preference"] = _override_preference(
         message, merged.get("preference", "balanced")
     )
