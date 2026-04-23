@@ -1,5 +1,5 @@
 """
-Provider selection for local-first RailMan AI chat generation.
+Local-only provider selection for RailMan AI chat generation.
 """
 import logging
 import os
@@ -20,9 +20,14 @@ class GenerationResult:
 
 
 def _provider_order() -> List[str]:
-    raw = os.getenv("RAILMAN_LLM_PROVIDER_ORDER", "local,anthropic,openai,rule_based")
-    providers = [item.strip().lower() for item in raw.split(",") if item.strip()]
-    return providers or ["rule_based"]
+    raw = os.getenv("RAILMAN_LLM_PROVIDER_ORDER", "local,rule_based")
+    requested = [item.strip().lower() for item in raw.split(",") if item.strip()]
+    allowed = [provider for provider in requested if provider in {"local", "rule_based"}]
+    if not allowed:
+        return ["local", "rule_based"]
+    if "local" not in allowed:
+        allowed.insert(0, "local")
+    return allowed
 
 
 def _local_model_path() -> Path:
@@ -36,7 +41,7 @@ def get_runtime_status() -> dict:
         "provider_order": _provider_order(),
         "local_model_path": str(model_path),
         "local_model_exists": model_path.exists(),
-        "offline_only": os.getenv("RAILMAN_LOCAL_ONLY", "0").strip().lower() in {"1", "true", "yes"},
+        "offline_only": True,
     }
 
 
@@ -110,67 +115,10 @@ def _generate_local(system_prompt: str, messages: List[dict]) -> Optional[Genera
         return None
 
 
-def _generate_anthropic(system_prompt: str, messages: List[dict]) -> Optional[GenerationResult]:
-    key = os.getenv("ANTHROPIC_API_KEY", "").strip()
-    if not key:
-        return None
-
-    try:
-        import anthropic
-    except ImportError:
-        return None
-
-    try:
-        client = anthropic.Anthropic(api_key=key)
-        response = client.messages.create(
-            model=os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
-            max_tokens=int(os.getenv("REMOTE_LLM_MAX_TOKENS", "512")),
-            system=system_prompt,
-            messages=messages,
-        )
-        text = response.content[0].text.strip()
-        if not text:
-            return None
-        return GenerationResult(text=text, provider="anthropic", model=response.model)
-    except Exception as exc:
-        logger.warning("Anthropic generation failed: %s", exc)
-        return None
-
-
-def _generate_openai(system_prompt: str, messages: List[dict]) -> Optional[GenerationResult]:
-    key = os.getenv("OPENAI_API_KEY", "").strip()
-    if not key:
-        return None
-
-    try:
-        from openai import OpenAI
-    except ImportError:
-        return None
-
-    try:
-        client = OpenAI(api_key=key)
-        response = client.chat.completions.create(
-            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-            max_tokens=int(os.getenv("REMOTE_LLM_MAX_TOKENS", "512")),
-            messages=[{"role": "system", "content": system_prompt}] + messages,
-        )
-        text = (response.choices[0].message.content or "").strip()
-        if not text:
-            return None
-        return GenerationResult(text=text, provider="openai", model=response.model)
-    except Exception as exc:
-        logger.warning("OpenAI generation failed: %s", exc)
-        return None
-
-
 def generate_with_providers(system_prompt: str, messages: List[dict]) -> Optional[GenerationResult]:
     for provider in _provider_order():
         if provider == "local":
             result = _generate_local(system_prompt, messages)
-        elif provider == "anthropic":
-            result = _generate_anthropic(system_prompt, messages)
-        elif provider == "openai":
-            result = _generate_openai(system_prompt, messages)
         else:
             result = None
 

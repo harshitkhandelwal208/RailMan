@@ -483,11 +483,12 @@ def _recommend_with_trains(trains, source, destination, time_str=None, preferenc
     if "error" in direct:
         return transfer
 
-    if preference == "balanced":
-        chosen, other = (direct, transfer) if direct.get("best", {}).get("kind") == "direct" else (transfer, direct)
+    direct_rank = _route_rank(direct, preference)
+    transfer_rank = _route_rank(transfer, preference)
+    if direct_rank <= transfer_rank:
+        chosen, other = direct, transfer
     else:
-        chosen = direct if _route_rank(direct, preference) <= _route_rank(transfer, preference) else transfer
-        other = transfer if chosen is direct else direct
+        chosen, other = transfer, direct
 
     chosen = dict(chosen)
     chosen["alternatives"] = _merge_alternatives(chosen, other)

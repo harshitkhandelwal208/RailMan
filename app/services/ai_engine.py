@@ -1,8 +1,8 @@
 """
 AI Engine — Chat + Intent Handling (v4)
 -----------------------------------------
-Generation priority (configurable via RAILMAN_LLM_PROVIDER_ORDER env var):
-  local (llama-cpp GGUF) → Anthropic Claude → OpenAI → Rule-based
+Generation priority (local-only):
+  local (llama-cpp GGUF) → Rule-based
 
 Enhancements over v3:
   • Context Resolver — follow-up detection, entity inheritance, time-delta arithmetic

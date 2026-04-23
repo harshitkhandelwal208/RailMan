@@ -91,6 +91,64 @@ class RecommendationEngineTests(unittest.TestCase):
 
 
 
+
+    def test_balanced_preference_can_choose_faster_transfer_route(self):
+        trains = [
+            {
+                "id": "slow_first_leg",
+                "name": "Mahim–Bandra Slow",
+                "type": "slow",
+                "line": "western",
+                "direction": 1,
+                "start_index": 10,
+                "stop_ids": ["MH", "BD"],
+                "departs_hour": 9,
+                "departs_minute": 0,
+                "mins_per_hop": 4,
+            },
+            {
+                "id": "slow_direct",
+                "name": "Mahim–Borivali Slow",
+                "type": "slow",
+                "line": "western",
+                "direction": 1,
+                "start_index": 10,
+                "stop_ids": ["MH", "BD", "KR", "SC", "VP", "AN", "JG", "GN", "MA", "KD", "BV"],
+                "departs_hour": 9,
+                "departs_minute": 50,
+                "mins_per_hop": 6,
+            },
+            {
+                "id": "fast_second_leg",
+                "name": "Bandra–Borivali Fast",
+                "type": "fast",
+                "line": "western",
+                "direction": 1,
+                "start_index": 11,
+                "stop_ids": ["BD", "KR", "SC", "VP", "AN", "JG", "GN", "MA", "KD", "BV"],
+                "departs_hour": 9,
+                "departs_minute": 10,
+                "mins_per_hop": 2,
+            },
+        ]
+        mocked_now = datetime(2026, 4, 22, 8, 55, tzinfo=IST)
+
+        crowd = lambda *args, **kwargs: ("Low", "#0f0", 10)
+
+        with patch("app.services.recommendation_engine.get_service_now", return_value=mocked_now), \
+             patch("app.services.recommendation_engine.predict_crowd", side_effect=crowd):
+            rec = _recommend_with_trains(
+                trains,
+                "Mahim",
+                "Borivali",
+                "08:55",
+                "balanced",
+            )
+
+        self.assertNotIn("error", rec)
+        self.assertEqual(rec["best"]["kind"], "transfer")
+        self.assertEqual(rec["best"]["transfer_station"], "BD")
+
     def test_fastest_preference_can_switch_trains_on_same_line(self):
         trains = [
             {

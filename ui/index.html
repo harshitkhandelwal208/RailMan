@@ -26,7 +26,7 @@
                 }
             }
         }
-    </script>
+</script>
     <style>
         :root { --vh: 1vh; }
         body { background-color: #0B0D14; color: #E2E8F0; }
@@ -37,7 +37,7 @@
         ::-webkit-scrollbar-thumb { background: #2A2D3A; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-        /* --- Layout --- */
+        
         .dashboard-container {
             display: flex;
             flex-direction: row;
@@ -57,7 +57,7 @@
             }
         }
 
-        /* Panel */
+        
         .panel {
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             min-width: 0;
@@ -74,7 +74,7 @@
             #panel-map   { height: 55vh; min-height: 380px; }
         }
 
-        /* Loading dots */
+        
         .loading-dots::after {
             content: '.';
             animation: dots 1.5s steps(5, end) infinite;
@@ -86,7 +86,7 @@
             80%,100%{ text-shadow: .25em 0 0 white,.5em 0 0 white; }
         }
 
-        /* Leaflet dark popup overrides */
+        
         .leaflet-popup-content-wrapper {
             background: #1B1E29 !important;
             border: 1px solid #2A2D3A !important;
@@ -101,7 +101,7 @@
         .leaflet-popup-close-button:hover { color: #E2E8F0 !important; }
         .leaflet-container { background: #0C1217; }
 
-        /* Modal overlay */
+        
         .modal-overlay {
             position: fixed; inset: 0; z-index: 9000;
             background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
@@ -119,7 +119,7 @@
             to   { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* Train marker pulse */
+        
         .train-marker-pulse {
             animation: pulse 2s ease-in-out infinite;
         }
@@ -128,13 +128,13 @@
             50%      { box-shadow: 0 0 0 6px rgba(91,77,255,0); }
         }
 
-        /* Tab indicator */
+        
         .tab-active {
             color: white;
             border-bottom: 2px solid #5B4DFF;
         }
 
-        /* Settings toggle */
+        
         .toggle-track {
             width: 40px; height: 22px; border-radius: 11px;
             background: #2A2D3A; position: relative;
@@ -652,9 +652,9 @@ body { background: radial-gradient(circle at top left, rgba(91,77,255,0.18), tra
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════════
-// GLOBALS
-// ═══════════════════════════════════════════════════════════════
+
+
+
 let STATIONS_DATA = [];
 let mapObj = null;
 let trainMarkers = {};
@@ -662,14 +662,14 @@ let stationMarkers = [];
 let tileLayer = null;
 let currentMaximizedPanel = null;
 let pollIntervalId = null;
-let currentTrainData = null;  // for train detail modal
+let currentTrainData = null;
 let SESSION_ID = null;
 let CONVERSATION_ID = null;
 let USER = null;
 let AUTH_TOKEN = null;
 let CHAT_IS_BUSY = false;
 let CHAT_CONTEXT = [];
-let lastTrainDataMap = {};    // id -> train data for modal
+let lastTrainDataMap = {};
 const LINE_COLORS = { western: "#60A5FA", central: "#34D399", harbour: "#F59E0B" };
 const LINE_LABELS = { western: 'Western', central: 'Central', harbour: 'Harbour' };
 function stationOptionLabel(s) {
@@ -679,7 +679,7 @@ function stationOptionLabel(s) {
 const RAIL_TIME_ZONE = 'Asia/Kolkata';
 const CHAT_HISTORY_LIMIT = 40;
 
-// Settings
+
 let SETTINGS = {
     mapStyle: 'dark',
     showLabels: false,
@@ -707,11 +707,11 @@ function formatRouteSummary(route) {
     return `${best.name || best.train_name} · ${prettyLineName(best.line)}`;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// SESSION + AUTH
-// ═══════════════════════════════════════════════════════════════
+
+
+
 function initSession() {
-    // Load from localStorage (settings + session)
+
     const saved = localStorage.getItem('railman_settings');
     if (saved) try { SETTINGS = { ...SETTINGS, ...JSON.parse(saved) }; } catch(e) {}
     SESSION_ID = localStorage.getItem('railman_session') || generateId();
@@ -839,9 +839,9 @@ function applyLoggedOut() {
     document.getElementById('user-avatar-icon').textContent = 'person';
 }
 
-// ═══════════════════════════════════════════════════════════════
-// AUTH MODAL
-// ═══════════════════════════════════════════════════════════════
+
+
+
 function openAuth() {
     const el = document.getElementById('modal-auth');
     el.classList.remove('hidden');
@@ -924,7 +924,7 @@ async function doGuestSession() {
 function saveAuthData(data) {
     AUTH_TOKEN = data.access_token;
     USER = data.user;
-    // Use auth user email as session for persistent memory
+
     SESSION_ID = USER.email;
     localStorage.setItem('railman_token', AUTH_TOKEN);
     localStorage.setItem('railman_user', JSON.stringify(USER));
@@ -961,20 +961,20 @@ async function doClearMemory() {
     } catch(e) { showToast('Error clearing memory'); }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// SETTINGS MODAL
-// ═══════════════════════════════════════════════════════════════
+
+
+
 function openSettings() {
     const m = document.getElementById('modal-settings');
     m.classList.remove('hidden');
-    // Apply current settings to controls
+
     document.getElementById('setting-map-style').value = SETTINGS.mapStyle;
     document.getElementById('setting-poll-interval').value = SETTINGS.pollInterval;
     const tl = document.getElementById('toggle-labels');
     const ta = document.getElementById('toggle-animate');
     if (SETTINGS.showLabels) tl.classList.add('on'); else tl.classList.remove('on');
     if (SETTINGS.animate) ta.classList.add('on'); else ta.classList.remove('on');
-    // Populate station selects
+
     const sFrom = document.getElementById('setting-default-from');
     const sTo = document.getElementById('setting-default-to');
     sFrom.innerHTML = '<option value="">None</option>';
@@ -1001,7 +1001,7 @@ function saveSettings() {
     SETTINGS.defaultFrom = document.getElementById('setting-default-from').value;
     SETTINGS.defaultTo = document.getElementById('setting-default-to').value;
     localStorage.setItem('railman_settings', JSON.stringify(SETTINGS));
-    // Apply
+
     applyMapStyle();
     applyPollInterval();
     if (SETTINGS.defaultFrom) document.getElementById('plan-from').value = SETTINGS.defaultFrom;
@@ -1030,11 +1030,11 @@ function applyPollInterval() {
     pollIntervalId = setInterval(pollTrains, val);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// PANEL MAXIMIZE (desktop only)
-// ═══════════════════════════════════════════════════════════════
+
+
+
 function toggleMaximize(panelId) {
-    if (window.innerWidth <= 768) return; // no-op on mobile
+    if (window.innerWidth <= 768) return;
     const panels = ['panel-chat', 'panel-plan', 'panel-map'];
     if (currentMaximizedPanel === panelId) {
         panels.forEach(id => {
@@ -1060,9 +1060,9 @@ function toggleMaximize(panelId) {
     setTimeout(() => { if(mapObj) mapObj.invalidateSize(); }, 350);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// JOURNEY PLANNER
-// ═══════════════════════════════════════════════════════════════
+
+
+
 let currentPreference = 'balanced';
 let currentPreferredLine = 'all';
 
@@ -1084,7 +1084,7 @@ async function initPlanner() {
         STATIONS_DATA = await stationsRes.json();
         const fromSel = document.getElementById('plan-from');
         const toSel = document.getElementById('plan-to');
-        // line selector buttons are initialized below
+
         fromSel.innerHTML = '';
         toSel.innerHTML = '';
         STATIONS_DATA.forEach(s => {
@@ -1198,9 +1198,9 @@ document.getElementById('btn-find').addEventListener('click', async () => {
     finally { spinner.classList.add('hidden'); }
 });
 
-// ═══════════════════════════════════════════════════════════════
-// CHAT
-// ═══════════════════════════════════════════════════════════════
+
+
+
 function appendChatMessage(text, role, options = {}) {
     const { shouldScroll = true } = options;
     const hist = document.getElementById('chat-history');
@@ -1299,9 +1299,9 @@ function updateCrowdBadge(label, color) {
     document.getElementById('header-crowd-dot').style.backgroundColor = color;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// MAP
-// ═══════════════════════════════════════════════════════════════
+
+
+
 let mapBounds = null;
 let mapLineLayers = [];
 
@@ -1427,12 +1427,12 @@ async function pollTrains() {
                 m.on('click', () => { lastTrainDataMap[t.id] = t; });
                 trainMarkers[t.id] = m;
             }
-            // Update popup content when open
+
             if (trainMarkers[t.id].isPopupOpen()) {
                 trainMarkers[t.id].setPopupContent(makeTrainPopup(t));
             }
         });
-        // Remove gone trains
+
         Object.keys(trainMarkers).forEach(id => {
             if (!seen.has(id)) { mapObj.removeLayer(trainMarkers[id]); delete trainMarkers[id]; delete lastTrainDataMap[id]; }
         });
@@ -1440,14 +1440,14 @@ async function pollTrains() {
     } catch(e) {}
 }
 
-// ═══════════════════════════════════════════════════════════════
-// TRAIN DETAIL MODAL
-// ═══════════════════════════════════════════════════════════════
+
+
+
 function openTrainModal(trainId) {
     const t = lastTrainDataMap[trainId];
     if (!t) return;
     currentTrainData = t;
-    // Close any open popups
+
     if (mapObj) mapObj.closePopup();
     const modal = document.getElementById('modal-train');
     modal.classList.remove('hidden');
@@ -1463,7 +1463,7 @@ function openTrainModal(trainId) {
     document.getElementById('td-crowd').style.color = t.crowd_color;
     document.getElementById('td-crowd-dot').style.backgroundColor = t.crowd_color;
     document.getElementById('td-eta').textContent = `${t.eta_minutes || '—'} min`;
-    // Stops list
+
     const stopsList = document.getElementById('td-stops-list');
     stopsList.innerHTML = '';
     const stops = t.stops || [];
@@ -1491,15 +1491,15 @@ function askAboutTrain() {
     const msg = `Tell me about ${t.display_name || t.name} — it's currently at ${t.current_station} heading ${t.direction}, with ${t.crowd} crowd.`;
     closeTrainModal();
     sendChatMessage(msg);
-    // On mobile, scroll to chat panel
+
     if (window.innerWidth <= 768) {
         document.getElementById('panel-chat').scrollIntoView({ behavior: 'smooth' });
     }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// TOAST NOTIFICATION
-// ═══════════════════════════════════════════════════════════════
+
+
+
 function showToast(msg) {
     const el = document.createElement('div');
     el.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-rail-panel border border-rail-border text-white text-xs px-4 py-2.5 rounded-full shadow-xl z-[9999] transition-all';
@@ -1508,9 +1508,9 @@ function showToast(msg) {
     setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 2500);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// MOBILE: close modals on outside click
-// ═══════════════════════════════════════════════════════════════
+
+
+
 document.getElementById('modal-auth').addEventListener('click', e => {
     if (e.target === document.getElementById('modal-auth')) closeAuth();
 });
@@ -1518,18 +1518,18 @@ document.getElementById('modal-settings').addEventListener('click', e => {
     if (e.target === document.getElementById('modal-settings')) closeSettings();
 });
 
-// ═══════════════════════════════════════════════════════════════
-// KEYBOARD SHORTCUTS
-// ═══════════════════════════════════════════════════════════════
+
+
+
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         closeAuth(); closeSettings(); closeTrainModal();
     }
 });
 
-// ═══════════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════════
+
+
+
 window.addEventListener('DOMContentLoaded', () => {
     initSession();
     setChatBusy(false);
@@ -1537,15 +1537,14 @@ window.addEventListener('DOMContentLoaded', () => {
     initPlanner();
     setPlannerLine(currentPreferredLine);
     initMap();
-    // Start polling
+
     setTimeout(pollTrains, 600);
     pollIntervalId = setInterval(pollTrains, SETTINGS.pollInterval);
-    // Apply saved settings
+
     if (SETTINGS.defaultFrom) setTimeout(() => {
         const f = document.getElementById('plan-from');
         if (f && STATIONS_DATA.length > 0) f.value = SETTINGS.defaultFrom;
     }, 1000);
-});
-</script>
+});</script>
 </body>
 </html>
