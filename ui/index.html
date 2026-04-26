@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>RailMan — Mumbai Suburban Network</title>
+    <title>TrainMan — Mumbai Suburban Network</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
@@ -593,7 +593,7 @@
             color: #f9f9eb !important;
         }
 
-        .railman-logo-mark {
+        .TrainMan-logo-mark {
             width: 3.5rem;
             height: 3.5rem;
             border-radius: 9999px;
@@ -604,13 +604,13 @@
             overflow: hidden;
         }
 
-        html[data-theme="dark"] .railman-logo-mark {
+        html[data-theme="dark"] .TrainMan-logo-mark {
             background: linear-gradient(145deg, rgba(27, 112, 189, 0.28), rgba(110, 200, 228, 0.16));
             border-color: rgba(110, 200, 228, 0.18);
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.30);
         }
 
-        .railman-logo-mark .material-symbols-outlined {
+        .TrainMan-logo-mark .material-symbols-outlined {
             position: absolute;
             inset: 0;
             display: flex;
@@ -621,11 +621,11 @@
             z-index: 1;
         }
 
-        html[data-theme="dark"] .railman-logo-mark .material-symbols-outlined {
+        html[data-theme="dark"] .TrainMan-logo-mark .material-symbols-outlined {
             color: #f9f9eb !important;
         }
 
-        #railman-lottie {
+        #TrainMan-lottie {
             position: absolute;
             inset: 0;
             z-index: 2;
@@ -813,7 +813,7 @@
         <div class="flex items-center gap-2.5">
             <span class="material-symbols-outlined text-rail-primary fill-icon text-2xl">train</span>
             <h1 class="text-base md:text-lg font-semibold tracking-tight text-white flex items-center gap-2">
-                RailMan <span class="text-rail-textMuted text-xs md:text-sm font-normal hidden sm:inline">Western •
+                TrainMan <span class="text-rail-textMuted text-xs md:text-sm font-normal hidden sm:inline">Western •
                     Central • Harbour</span>
             </h1>
         </div>
@@ -1115,7 +1115,7 @@
                 <button onclick="askAboutTrain()"
                     class="w-full mt-4 py-2 bg-rail-base border border-rail-primary/40 hover:border-rail-primary text-rail-primary hover:text-white rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5">
                     <span class="material-symbols-outlined text-sm">smart_toy</span>
-                    Ask AI about this train
+                    Ask about this train
                 </button>
             </div>
         </div>
@@ -1147,13 +1147,13 @@
             <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 min-h-0" id="chat-messages-container">
                 <div id="chat-empty-state"
                     class="flex flex-col items-center justify-center gap-3 my-2 bg-rail-base/40 p-5 rounded-2xl border border-rail-border/50">
-                    <div class="railman-logo-mark flex items-center justify-center relative glass-sheen">
+                    <div class="TrainMan-logo-mark flex items-center justify-center relative glass-sheen">
                         <span class="material-symbols-outlined fill-icon">train</span>
-                        <div id="railman-lottie" class="w-12 h-12"></div>
+                        <div id="TrainMan-lottie" class="w-12 h-12"></div>
                         <div class="absolute inset-0 bg-[#6ec8e4] blur-xl opacity-20 rounded-full"></div>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-white font-semibold text-sm">Welcome to RailMan!</h3>
+                        <h3 class="text-white font-semibold text-sm">Welcome to TrainMan!</h3>
                         <p class="text-xs text-rail-textMuted mt-1">Ask one question, then keep going. Route, crowd, and
                             timing context stay in the conversation.</p>
                     </div>
@@ -1194,7 +1194,7 @@
                         <span class="material-symbols-outlined text-rail-primary fill-icon text-base">route</span>
                         Journey Planner
                     </h2>
-                    <p class="text-[11px] text-rail-textMuted mt-1">Choose start and end stations — RailMan picks the
+                    <p class="text-[11px] text-rail-textMuted mt-1">Choose start and end stations — TrainMan picks the
                         best direct or switching route automatically.</p>
                 </div>
                 <button onclick="toggleMaximize('panel-plan')"
@@ -1427,7 +1427,7 @@
             const lines = (s.lines || []).map(line => LINE_LABELS[line] || line).join(' / ');
             return lines ? `${s.name} — ${lines}` : s.name;
         }
-        const RAIL_TIME_ZONE = 'Asia/Kolkata';
+        const RL_TIME_ZONE = 'Asia/Kolkata';
         const CHAT_HISTORY_LIMIT = 40;
 
         let SETTINGS = {
@@ -1462,14 +1462,14 @@
 
         function initSession() {
 
-            const saved = localStorage.getItem('railman_settings');
+            const saved = localStorage.getItem('TrainMan_settings');
             if (saved) try { SETTINGS = { ...SETTINGS, ...JSON.parse(saved) }; } catch (e) { }
             applyTheme();
-            SESSION_ID = localStorage.getItem('railman_session') || generateId();
-            localStorage.setItem('railman_session', SESSION_ID);
+            SESSION_ID = localStorage.getItem('TrainMan_session') || generateId();
+            localStorage.setItem('TrainMan_session', SESSION_ID);
             ensureConversationId();
-            AUTH_TOKEN = localStorage.getItem('railman_token') || null;
-            const savedUser = localStorage.getItem('railman_user');
+            AUTH_TOKEN = localStorage.getItem('TrainMan_token') || null;
+            const savedUser = localStorage.getItem('TrainMan_user');
             if (savedUser) try { USER = JSON.parse(savedUser); applyLoggedIn(); } catch (e) { }
         }
 
@@ -1478,7 +1478,7 @@
         }
 
         function getConversationStorageKey() {
-            return `railman_conversation:${SESSION_ID || 'guest'}`;
+            return `TrainMan_conversation:${SESSION_ID || 'guest'}`;
         }
 
         function ensureConversationId(forceNew = false) {
@@ -1514,7 +1514,7 @@
             send.classList.toggle('opacity-60', isBusy);
             send.classList.toggle('cursor-not-allowed', isBusy);
             input.placeholder = isBusy
-                ? 'RailMan is replying...'
+                ? 'TrainMan is replying...'
                 : 'Ask about trains, routes, crowd...';
         }
 
@@ -1665,7 +1665,7 @@
                 const data = await res.json();
                 SESSION_ID = data.session_id;
             } catch (e) { SESSION_ID = generateId(); }
-            localStorage.setItem('railman_session', SESSION_ID);
+            localStorage.setItem('TrainMan_session', SESSION_ID);
             ensureConversationId();
             loadChatHistory();
             closeAuth();
@@ -1676,9 +1676,9 @@
             USER = data.user;
 
             SESSION_ID = USER.email;
-            localStorage.setItem('railman_token', AUTH_TOKEN);
-            localStorage.setItem('railman_user', JSON.stringify(USER));
-            localStorage.setItem('railman_session', SESSION_ID);
+            localStorage.setItem('TrainMan_token', AUTH_TOKEN);
+            localStorage.setItem('TrainMan_user', JSON.stringify(USER));
+            localStorage.setItem('TrainMan_session', SESSION_ID);
             ensureConversationId();
             applyLoggedIn();
             loadChatHistory();
@@ -1687,9 +1687,9 @@
         function doLogout() {
             AUTH_TOKEN = null; USER = null;
             SESSION_ID = generateId();
-            localStorage.removeItem('railman_token');
-            localStorage.removeItem('railman_user');
-            localStorage.setItem('railman_session', SESSION_ID);
+            localStorage.removeItem('TrainMan_token');
+            localStorage.removeItem('TrainMan_user');
+            localStorage.setItem('TrainMan_session', SESSION_ID);
             ensureConversationId(true);
             applyLoggedOut();
             loadChatHistory();
@@ -1745,7 +1745,7 @@
             document.documentElement.setAttribute('data-theme', theme);
             const toggle = document.getElementById('toggle-theme');
             if (toggle) toggle.classList.toggle('on', theme === 'dark');
-            localStorage.setItem('railman_settings', JSON.stringify(SETTINGS));
+            localStorage.setItem('TrainMan_settings', JSON.stringify(SETTINGS));
         }
 
         function toggleTheme() {
@@ -1766,7 +1766,7 @@
             SETTINGS.pollInterval = parseInt(document.getElementById('setting-poll-interval').value);
             SETTINGS.defaultFrom = document.getElementById('setting-default-from').value;
             SETTINGS.defaultTo = document.getElementById('setting-default-to').value;
-            localStorage.setItem('railman_settings', JSON.stringify(SETTINGS));
+            localStorage.setItem('TrainMan_settings', JSON.stringify(SETTINGS));
 
             applyMapStyle();
             applyPollInterval();
@@ -1832,7 +1832,7 @@
 
         function getRailTimeString(date = new Date()) {
             const parts = new Intl.DateTimeFormat('en-GB', {
-                timeZone: RAIL_TIME_ZONE,
+                timeZone: RL_TIME_ZONE,
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false
@@ -1978,7 +1978,7 @@
                 : 'self-start flex flex-col items-start max-w-[90%]';
             div.innerHTML = `
         <div class="text-[10px] uppercase tracking-[0.18em] ${isUser ? 'text-rail-primary/80 pr-1' : 'text-rail-textMuted pl-1'}">
-            ${isUser ? 'You' : 'RailMan'}
+            ${isUser ? 'You' : 'TrainMan'}
         </div>
         <div class="${isUser
                     ? 'bg-rail-primary text-white rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm shadow-md'
@@ -2002,7 +2002,7 @@
             const loading = document.createElement('div');
             loading.className = 'self-start flex flex-col items-start max-w-[90%]';
             loading.innerHTML = `
-        <div class="text-[10px] uppercase tracking-[0.18em] text-rail-textMuted pl-1">RailMan</div>
+        <div class="text-[10px] uppercase tracking-[0.18em] text-rail-textMuted pl-1">TrainMan</div>
         <div class="bg-rail-base border border-rail-border text-rail-textMain rounded-2xl rounded-tl-sm px-4 py-3 text-sm">
             <div class="flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-rail-textMuted/80 animate-pulse"></span>
@@ -2317,7 +2317,7 @@
                 op: 90,
                 w: 120,
                 h: 120,
-                nm: "RailMan Pulse",
+                nm: "TrainMan Pulse",
                 ddd: 0,
                 assets: [],
                 layers: [
@@ -2408,7 +2408,7 @@
 
             function initLottie() {
                 if (!window.lottie) return;
-                const el = document.getElementById('railman-lottie');
+                const el = document.getElementById('TrainMan-lottie');
                 if (!el) return;
                 try {
                     lottie.loadAnimation({
@@ -2531,7 +2531,7 @@
             }
 
             function patchMessageAndToast() {
-                if (window.appendChatMessage && !window.__railmanPatchedChatMessage) {
+                if (window.appendChatMessage && !window.__TrainManPatchedChatMessage) {
                     const original = window.appendChatMessage;
                     window.appendChatMessage = function (text, role, options = {}) {
                         const node = original.call(this, text, role, options);
@@ -2540,24 +2540,24 @@
                         }
                         return node;
                     };
-                    window.__railmanPatchedChatMessage = true;
+                    window.__TrainManPatchedChatMessage = true;
                 }
 
-                if (window.showToast && !window.__railmanPatchedToast) {
+                if (window.showToast && !window.__TrainManPatchedToast) {
                     const originalToast = window.showToast;
                     window.showToast = function (msg) {
-                        const prevCount = document.querySelectorAll('.railman-toast').length;
+                        const prevCount = document.querySelectorAll('.TrainMan-toast').length;
                         originalToast.call(this, msg);
                         const toasts = Array.from(document.querySelectorAll('body > div')).filter(el => el.textContent === msg);
                         const el = toasts[toasts.length - 1];
                         if (el) {
-                            el.classList.add('railman-toast');
+                            el.classList.add('TrainMan-toast');
                             if (window.gsap && !REDUCED) {
                                 gsap.fromTo(el, { opacity: 0, y: 10, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.25, ease: 'power2.out' });
                             }
                         }
                     };
-                    window.__railmanPatchedToast = true;
+                    window.__TrainManPatchedToast = true;
                 }
             }
 
@@ -2597,7 +2597,7 @@
                         fadeInDynamicCards();
                     });
                     observer.observe(document.body, { childList: true, subtree: true });
-                    window.__railmanMotionObserver = observer;
+                    window.__TrainManMotionObserver = observer;
                 }
             }
 
